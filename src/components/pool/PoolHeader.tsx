@@ -66,10 +66,10 @@ export const PoolHeader = ({ poolData }: PoolHeaderProps) => {
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-mono">{poolData.address}</span>
+              <span className="font-mono truncate max-w-[200px] sm:max-w-none">{poolData.address}</span>
               <button
                 onClick={handleCopyAddress}
-                className="hover:text-foreground transition-colors"
+                className="hover:text-foreground transition-colors flex-shrink-0"
               >
                 <Copy className="w-4 h-4" />
               </button>

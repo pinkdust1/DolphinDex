@@ -23,14 +23,14 @@ export const ChartCard = ({
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4">
+          <h3 className="text-base sm:text-lg font-semibold text-foreground">{title}</h3>
+          <div className="flex items-center gap-1 sm:gap-2">
             {timeframes.map((tf) => (
               <button
                 key={tf}
                 onClick={() => onTimeframeChange(tf)}
-                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-md transition-colors ${
                   timeframe === tf
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -42,17 +42,17 @@ export const ChartCard = ({
           </div>
         </div>
         <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-foreground">
+          <span className="text-2xl sm:text-3xl font-bold text-foreground">
             {wholePart}
             {decimalPart && (
               <span className="text-muted-foreground">.{decimalPart}</span>
             )}
           </span>
-          <span className="text-lg text-muted-foreground">{symbol}</span>
+          <span className="text-base sm:text-lg text-muted-foreground">{symbol}</span>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="relative w-full h-[330px] bg-secondary/20 rounded-lg flex items-center justify-center">
+        <div className="relative w-full h-[250px] sm:h-[330px] bg-secondary/20 rounded-lg flex items-center justify-center">
           <div className="text-center text-muted-foreground">
             <svg
               className="w-16 h-16 mx-auto mb-2 opacity-50"

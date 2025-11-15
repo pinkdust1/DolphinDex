@@ -52,10 +52,10 @@ export const LiquidityForm = ({ token1, token2 }: LiquidityFormProps) => {
       </div>
 
       {/* Token Selection */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         <button
           onClick={() => setMode("single")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+          className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border transition-colors ${
             mode === "single"
               ? "bg-primary text-primary-foreground border-primary"
               : "bg-secondary border-border hover:bg-accent"
@@ -67,7 +67,7 @@ export const LiquidityForm = ({ token1, token2 }: LiquidityFormProps) => {
 
         <button
           onClick={() => setMode("single")}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border bg-secondary border-border hover:bg-accent transition-colors"
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border bg-secondary border-border hover:bg-accent transition-colors"
         >
           <img src={token2.logo} alt={token2.symbol} className="w-5 h-5 rounded-full" />
           <span className="text-sm font-medium">{token2.symbol}</span>
@@ -75,7 +75,7 @@ export const LiquidityForm = ({ token1, token2 }: LiquidityFormProps) => {
 
         <button
           onClick={() => setMode("double")}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border bg-secondary border-border hover:bg-accent transition-colors"
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border bg-secondary border-border hover:bg-accent transition-colors"
         >
           <div className="flex items-center -space-x-2">
             <img
