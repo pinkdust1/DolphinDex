@@ -41,45 +41,40 @@ export const LiquidityChart = ({
   };
 
   const renderLegend = (props: any) => {
-    const { payload } = props;
-    return (
-      <div className="space-y-3">
-        {payload.map((entry: any, index: number) => {
-          const tokenData = index === 0 ? token1 : token2;
-          const [whole, decimal] = tokenData.amount.split(".");
-          
-          return (
-            <div key={`legend-${index}`} className="space-y-1">
-              <div className="flex items-center gap-2">
+      const { payload } = props;
+      return (
+        <div className="flex gap-4 justify-center flex-wrap">
+          {payload.map((entry: any, index: number) => {
+            const tokenData = index === 0 ? token1 : token2;
+            const [whole, decimal] = tokenData.amount.split(".");
+            
+            return (
+              <div key={`legend-${index}`} className="flex items-center gap-2">
                 <div
-                  className="w-3.5 h-3.5 rounded-sm"
+                  className="w-3.5 h-3.5 rounded-sm flex-shrink-0"
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className="text-xs text-muted-foreground">
-                  Total {entry.value}
-                </span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-medium text-foreground">
+                    {whole}
+                    {decimal && (
+                      <span className="text-muted-foreground">.{decimal}</span>
+                    )}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {entry.value}
+                  </span>
+                </div>
               </div>
-              <div className="ml-5 flex items-baseline gap-1.5">
-                <span className="text-sm font-medium text-foreground">
-                  {whole}
-                  {decimal && (
-                    <span className="text-muted-foreground">.{decimal}</span>
-                  )}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {entry.value}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
+            );
+          })}
+        </div>
+      );
+    };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-foreground mb-4">
+    <div className="bg-card border border-border rounded-lg p-4 sm:p-6">
+      <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4">
         Pool Liquidity
       </h3>
 
@@ -87,7 +82,7 @@ export const LiquidityChart = ({
         <PieChart>
           <Pie
             data={data}
-            cx="30%"
+            cx="50%"
             cy="50%"
             innerRadius={50}
             outerRadius={70}
@@ -102,15 +97,15 @@ export const LiquidityChart = ({
           </Pie>
           <Legend
             content={renderLegend}
-            verticalAlign="middle"
-            align="right"
-            layout="vertical"
-            wrapperStyle={{ paddingLeft: "20px" }}
+            verticalAlign="bottom"
+            align="center"
+            layout="horizontal"
+            wrapperStyle={{ paddingTop: "20px" }}
           />
         </PieChart>
       </ResponsiveContainer>
 
-      <div className="mt-6 pt-6 border-t border-border">
+      <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-border">
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">My Contribution</p>
           <div className="flex items-center gap-2">

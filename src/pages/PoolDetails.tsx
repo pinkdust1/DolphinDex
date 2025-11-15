@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { PoolHeader } from "@/components/pool/PoolHeader";
 import { ChartCard } from "@/components/pool/ChartCard";
@@ -9,7 +7,6 @@ import { LiquidityForm } from "@/components/pool/LiquidityForm";
 import { PoolHistoryTable } from "@/components/pool/PoolHistoryTable";
 
 const PoolDetails = () => {
-  const navigate = useNavigate();
   const [priceTimeframe, setPriceTimeframe] = useState("1M");
   const [volumeTimeframe, setVolumeTimeframe] = useState("1M");
 
@@ -94,22 +91,12 @@ const PoolDetails = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="pt-20 container mx-auto px-4 pb-12">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 mb-6 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm font-medium">Back</span>
-        </button>
-
-        {/* Pool Details Container */}
-        <div className="space-y-6">
+      <main className="pt-20 container mx-auto px-2 sm:px-4 pb-8">
+        <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
           <PoolHeader poolData={poolData} />
 
           {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <ChartCard
               title="Price"
               currentValue={poolData.currentPrice}
@@ -135,7 +122,7 @@ const PoolDetails = () => {
           </div>
 
           {/* Liquidity & History Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="lg:col-span-1">
               <LiquidityForm
                 token1={liquidityFormData.token1}
