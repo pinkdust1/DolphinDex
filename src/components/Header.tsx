@@ -3,9 +3,11 @@ import { Button } from "@/components/ui/button";
 import { NavigationDropdown } from "@/components/NavigationDropdown";
 import { NetworkSelector } from "@/components/NetworkSelector";
 import { SettingsDropdown } from "@/components/SettingsDropdown";
+import { Menu, X } from "lucide-react";
 
 export const Header = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleDropdown = (name: string) => {
     setActiveDropdown(activeDropdown === name ? null : name);
@@ -100,11 +102,48 @@ export const Header = () => {
               Connect Wallet
             </Button>
 
-            <div className="w-px h-5 bg-border" />
+            <div className="w-px h-5 bg-border hidden md:block" />
 
             <SettingsDropdown />
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 hover:bg-accent rounded-md transition-colors"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-background">
+            <nav className="flex flex-col py-4 space-y-2">
+              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
+                Trade
+              </a>
+              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
+                NFTs
+              </a>
+              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
+                Bridge
+              </a>
+              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
+                Token Hub
+              </a>
+              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
+                Swap
+              </a>
+              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
+                Fiat
+              </a>
+              <div className="px-4 pt-2">
+                <Button className="w-full">Connect Wallet</Button>
+              </div>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );
