@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { PoolHeader } from "@/components/pool/PoolHeader";
 import { ChartCard } from "@/components/pool/ChartCard";
+import { LiquidityChart } from "@/components/pool/LiquidityChart";
+import { LiquidityForm } from "@/components/pool/LiquidityForm";
+import { PoolHistoryTable } from "@/components/pool/PoolHistoryTable";
 
 const PoolDetails = () => {
   const navigate = useNavigate();
@@ -26,6 +29,67 @@ const PoolDetails = () => {
     currentPrice: "0.1857329022",
     currentVolume: "191.401016",
   };
+
+  const liquidityData = {
+    token1: {
+      symbol: "WRB",
+      amount: "1205.03",
+      logo: "/amm/images/default.png",
+    },
+    token2: {
+      symbol: "XRP",
+      amount: "221.58",
+      logo: "/amm/images/xrp.svg",
+    },
+    totalValue: "1.4K",
+    myContribution: "0",
+  };
+
+  const liquidityFormData = {
+    token1: {
+      symbol: "WRB",
+      logo: "/amm/images/default.png",
+      available: "0",
+    },
+    token2: {
+      symbol: "XRP",
+      logo: "/amm/images/xrp.svg",
+      available: "--",
+    },
+  };
+
+  const transactions = [
+    {
+      activity: "swap" as const,
+      fromAmount: "0.03",
+      fromCurrency: "XRP",
+      toAmount: "0.16",
+      toCurrency: "WRB",
+      account: "rLhDWnBFitrn8iW8e5m7bVKqFS5raK1NbP",
+      time: "15 Nov, 12:39:41",
+      txHash: "123...",
+    },
+    {
+      activity: "swap" as const,
+      fromAmount: "0.16",
+      fromCurrency: "WRB",
+      toAmount: "0.03",
+      toCurrency: "XRP",
+      account: "rLhDWnBFitrn8iW8e5m7bVKqFS5raK1NbP",
+      time: "15 Nov, 12:39:41",
+      txHash: "456...",
+    },
+    {
+      activity: "swap" as const,
+      fromAmount: "2.00",
+      fromCurrency: "XRP",
+      toAmount: "10.87",
+      toCurrency: "WRB",
+      account: "r3XXkB37eVXdjQLsBArQX4c985S7gguVuX",
+      time: "15 Nov, 12:39:40",
+      txHash: "789...",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -62,6 +126,25 @@ const PoolDetails = () => {
               onTimeframeChange={setVolumeTimeframe}
               chartType="volume"
             />
+            <LiquidityChart
+              token1={liquidityData.token1}
+              token2={liquidityData.token2}
+              totalValue={liquidityData.totalValue}
+              myContribution={liquidityData.myContribution}
+            />
+          </div>
+
+          {/* Liquidity & History Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <LiquidityForm
+                token1={liquidityFormData.token1}
+                token2={liquidityFormData.token2}
+              />
+            </div>
+            <div className="lg:col-span-2">
+              <PoolHistoryTable transactions={transactions} />
+            </div>
           </div>
         </div>
       </main>
