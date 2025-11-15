@@ -83,7 +83,7 @@ export const Header = () => {
                   <line x1="2" y1="10" x2="22" y2="10" stroke="currentColor" strokeWidth="2"/>
                 </svg>}
                 items={[
-                  { title: "SOLO Card", desc: "Spend crypto your way on real-world expenditures." },
+                  { title: "Card", desc: "Spend crypto your way on real-world expenditures." },
                   { title: "Buy With Fiat", desc: "Purchase tokens with fiat using Visa, Mastercard & more." },
                 ]}
                 isOpen={activeDropdown === "fiat"}
