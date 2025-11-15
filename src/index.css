@@ -103,3 +103,9 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-2 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
