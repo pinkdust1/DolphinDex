@@ -78,11 +78,11 @@ export const PoolHeader = ({ poolData }: PoolHeaderProps) => {
         </div>
 
         {/* Right Section - Trust Meter & Actions */}
-        <div className="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-end">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
           <TrustMeter score={poolData.trustScore} />
 
-          <div className="flex items-center gap-2">
-            <Button className="gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button className="gap-2 h-9 text-sm">
               <svg
                 width="19"
                 height="18"
@@ -103,7 +103,7 @@ export const PoolHeader = ({ poolData }: PoolHeaderProps) => {
             <Button
               variant="outline"
               size="icon"
-              className="w-9 h-9"
+              className="w-9 h-9 flex-shrink-0"
               onClick={handleShare}
             >
               <MoreVertical className="w-4 h-4" />
@@ -112,17 +112,17 @@ export const PoolHeader = ({ poolData }: PoolHeaderProps) => {
             <Button
               variant="outline"
               size="icon"
-              className="w-9 h-9"
+              className="w-9 h-9 flex-shrink-0"
               onClick={handleShare}
             >
               <Share2 className="w-4 h-4" />
             </Button>
 
-            <div className="flex items-center gap-1 bg-secondary rounded-md p-1">
-              <button className="p-2 hover:bg-accent rounded transition-colors">
+            <div className="flex items-center gap-1 bg-secondary rounded-md p-1 flex-shrink-0">
+              <button className="p-1.5 hover:bg-accent rounded transition-colors">
                 <ThumbsUp className="w-4 h-4 text-muted-foreground" />
               </button>
-              <button className="p-2 hover:bg-accent rounded transition-colors">
+              <button className="p-1.5 hover:bg-accent rounded transition-colors">
                 <ThumbsDown className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
