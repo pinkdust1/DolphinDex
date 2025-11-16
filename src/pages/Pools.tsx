@@ -372,17 +372,32 @@ export default function Pools() {
   const [notifyNewPools, setNotifyNewPools] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const poolsPerPage = 8;
 
   const filteredPools = allPools.filter(pool => 
     pool.token1.toLowerCase().includes(searchQuery.toLowerCase()) ||
     pool.token2.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredPools.length / poolsPerPage);
+  const startIndex = (currentPage - 1) * poolsPerPage;
+  const endIndex = startIndex + poolsPerPage;
+  const currentPools = filteredPools.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 mt-20">
         {/* Top Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <h1 className="text-3xl md:text-4xl font-bold">XRPL Pools</h1>
@@ -445,10 +460,35 @@ export default function Pools() {
 
         {/* Pool Grid */}
         <div className={viewMode === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" : "space-y-4"}>
-          {filteredPools.map((pool) => (
+          {currentPools.map((pool) => (
             <PoolCard key={pool.id} pool={pool} />
           ))}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <Button
+              variant="outline"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className="gap-2"
+            >
+              <span>Previous</span>
+            </Button>
+            <span className="text-sm text-muted-foreground px-4">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className="gap-2"
+            >
+              <span>Next</span>
+            </Button>
+          </div>
+        )}
       </main>
     </div>
   );
