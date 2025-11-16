@@ -74,7 +74,7 @@ export const Header = () => {
                 </svg>}
                 items={[
                   { title: "QuickSwap", desc: "Swap in between Pools with the best rates on the XRP Ledger" },
-                  { title: "Pools", desc: "XRPL Pools to provide liquidity and earn rewards" },
+                  { title: "Pools", desc: "XRPL Pools to provide liquidity and earn rewards", href: "/" },
                 ]}
                 isOpen={activeDropdown === "swap"}
                 onToggle={() => toggleDropdown("swap")}
