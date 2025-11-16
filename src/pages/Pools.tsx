@@ -33,7 +33,7 @@ const highlightedPools: Pool[] = [
   },
   {
     id: "2",
-    token1: "SOLO",
+    token1: "WRB",
     token2: "XRP",
     price: "0.08744527",
     priceToken: "XRP",
