@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { NavigationDropdown } from "@/components/NavigationDropdown";
 import { NetworkSelector } from "@/components/NetworkSelector";
 import { SettingsDropdown } from "@/components/SettingsDropdown";
+import { WalletConnectDialog } from "@/components/WalletConnectDialog";
 import { Menu, X } from "lucide-react";
 
 export const Header = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
   const toggleDropdown = (name: string) => {
     setActiveDropdown(activeDropdown === name ? null : name);
@@ -98,7 +100,10 @@ export const Header = () => {
           <div className="flex items-center gap-3">
             <NetworkSelector />
             
-            <Button className="hidden md:flex">
+            <Button 
+              className="hidden md:flex"
+              onClick={() => setWalletDialogOpen(true)}
+            >
               Connect Wallet
             </Button>
 
@@ -139,12 +144,22 @@ export const Header = () => {
                 Fiat
               </a>
               <div className="px-4 pt-2">
-                <Button className="w-full">Connect Wallet</Button>
+                <Button 
+                  className="w-full"
+                  onClick={() => setWalletDialogOpen(true)}
+                >
+                  Connect Wallet
+                </Button>
               </div>
             </nav>
           </div>
         )}
       </div>
+
+      <WalletConnectDialog 
+        open={walletDialogOpen} 
+        onOpenChange={setWalletDialogOpen}
+      />
     </header>
   );
 };
