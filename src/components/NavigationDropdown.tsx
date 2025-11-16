@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface NavigationDropdownProps {
   label: string;
@@ -6,6 +7,7 @@ interface NavigationDropdownProps {
   items: Array<{
     title: string;
     desc: string;
+    href?: string;
   }>;
   isOpen: boolean;
   onToggle: () => void;
@@ -18,6 +20,15 @@ export const NavigationDropdown = ({
   isOpen,
   onToggle,
 }: NavigationDropdownProps) => {
+  const navigate = useNavigate();
+
+  const handleItemClick = (item: { title: string; desc: string; href?: string }) => {
+    if (item.href) {
+      navigate(item.href);
+      onToggle(); // Close dropdown after navigation
+    }
+  };
+
   return (
     <div className="relative">
       <div
@@ -46,6 +57,7 @@ export const NavigationDropdown = ({
             <div
               key={index}
               className="flex items-start gap-3 p-3 rounded-md hover:bg-accent transition-colors cursor-pointer"
+              onClick={() => handleItemClick(item)}
             >
               <div className="w-5 h-5 flex-shrink-0 mt-0.5">
                 <svg
