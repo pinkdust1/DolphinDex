@@ -1,10 +1,13 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, User } from "lucide-react";
 
-export const NFTHero = () => {
-  const [activeTab, setActiveTab] = useState<"home" | "explore">("home");
+interface NFTHeroProps {
+  activeTab: "home" | "explore";
+  setActiveTab: (tab: "home" | "explore") => void;
+}
+
+export const NFTHero = ({ activeTab, setActiveTab }: NFTHeroProps) => {
 
   return (
     <div className="space-y-6">
