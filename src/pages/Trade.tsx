@@ -17,7 +17,7 @@ const Trade = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <div className="container mx-auto p-4 space-y-4">
+      <div className="container mx-auto p-4 space-y-4 pt-20">
         <TradingTabs selectedPair={selectedPair} onPairChange={setSelectedPair} />
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
