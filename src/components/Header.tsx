@@ -50,16 +50,8 @@ export const Header = () => {
                   <path fillRule="evenodd" clipRule="evenodd" d="M7.45586 21.6214C7.35588 21.788 7.47591 22 7.67023 22H18.0783C18.1661 22 18.2475 21.954 18.2927 21.8787L23.4897 13.2171C23.5897 13.0505 23.4697 12.8385 23.2753 12.8385H12.8673C12.7794 12.8385 12.6981 12.8845 12.6529 12.9598L7.45586 21.6214ZM11.1947 12.1285C11.2421 12.0493 11.2421 11.9505 11.1947 11.8713L5.99561 3.20065C5.89855 3.03878 5.66399 3.03872 5.56685 3.20055L0.362231 11.8712C0.314697 11.9504 0.314696 12.0494 0.362231 12.1286L5.56685 20.7992C5.66399 20.9611 5.89855 20.961 5.99561 20.7991L11.1947 12.1285Z" fill="currentColor"/>
                   <path d="M23.4882 10.783L18.2912 2.12137C18.246 2.04607 18.1647 2 18.0769 2H7.66878C7.47445 2 7.35443 2.21199 7.45441 2.37863L12.6514 11.0402C12.6966 11.1155 12.778 11.1616 12.8658 11.1616H23.2739C23.4682 11.1616 23.5882 10.9496 23.4882 10.783Z" fill="hsl(var(--muted-foreground))"/>
                 </svg>
-                <span className="text-sm text-foreground">NFTs</span>
+              <span className="text-sm text-foreground">NFTs</span>
               </NavLink>
-
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors cursor-pointer">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-                  <path d="M22.0792 22.5C22.4758 22.5 22.7146 22.0604 22.4986 21.7277L17.6268 14.2242C17.4278 13.9176 16.9778 13.9212 16.7838 14.231L12.4237 21.1903C12.2278 21.5031 11.7722 21.5031 11.5763 21.1903L7.21625 14.231C7.0222 13.9212 6.57222 13.9176 6.37318 14.2242L1.50141 21.7277C1.28544 22.0604 1.52417 22.5 1.92077 22.5H22.0792ZM16.7838 9.76902C16.9779 10.0788 17.4278 10.0824 17.6269 9.77584L22.4987 2.27228C22.7146 1.93964 22.4759 1.5 22.0793 1.5H1.92083C1.52423 1.5 1.2855 1.93964 1.50147 2.27228L6.37324 9.77584C6.57228 10.0824 7.02226 10.0788 7.21631 9.76902L11.5763 2.80965C11.7723 2.49693 12.2279 2.49693 12.4238 2.80965L16.7838 9.76902Z" fill="currentColor"/>
-                  <path d="M11.5813 16.7212L8.67844 12.2747C8.57001 12.1086 8.57001 11.8941 8.67844 11.728L11.5813 7.28145C11.7786 6.97923 12.2214 6.97923 12.4187 7.28145L15.3216 11.728C15.43 11.8941 15.43 12.1086 15.3216 12.2747L12.4187 16.7212C12.2214 17.0234 11.7786 17.0234 11.5813 16.7212Z" fill="hsl(var(--muted-foreground))"/>
-                </svg>
-                <span className="text-sm text-foreground">Bridge</span>
-              </div>
 
               <NavigationDropdown
                 label="Token Hub"
@@ -71,6 +63,7 @@ export const Header = () => {
                   { title: "Markets", desc: "An accurate market index for all XRPL Tokens." },
                   { title: "IDO Launchpad", desc: "Launch your own project on the XRPL, issue tokens and raise funds." },
                   { title: "Airdrops", desc: "Track & Promote Community Airdrops" },
+                  { title: "Bridge", desc: "Cross-chain asset transfers for gaming and DeFi applications." },
                 ]}
                 isOpen={activeDropdown === "token"}
                 onToggle={() => toggleDropdown("token")}
