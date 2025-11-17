@@ -74,6 +74,7 @@ export const NFTCarousel = () => {
   const [scrollY, setScrollY] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,6 +96,22 @@ export const NFTCarousel = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Auto-play functionality
+  useEffect(() => {
+    if (isPaused || isTransitioning) return;
+    
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setActiveIndex((prev) => (prev + 1) % featuredNFTs.length);
+      
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 600);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isPaused, isTransitioning]);
+
   const handleCardClick = () => {
     if (isTransitioning) return;
     
@@ -109,6 +126,8 @@ export const NFTCarousel = () => {
   return (
     <div 
       ref={containerRef}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
       className="relative overflow-hidden py-32 bg-gradient-to-b from-background via-background/95 to-background"
       style={{ perspective: "1000px", height: "600px" }}
     >
