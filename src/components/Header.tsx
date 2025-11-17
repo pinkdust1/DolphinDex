@@ -143,13 +143,14 @@ export const Header = () => {
               <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
                 Fiat
               </a>
-              <div className="px-4 pt-2">
+              <div className="px-4 pt-2 flex flex-col gap-3">
                 <Button 
                   className="w-full"
                   onClick={() => setWalletDialogOpen(true)}
                 >
                   Connect Wallet
                 </Button>
+                <NetworkSelector />
               </div>
             </nav>
           </div>
