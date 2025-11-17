@@ -135,6 +135,7 @@ export const Header = () => {
               >
                 Trade
               </NavLink>
+              
               <NavLink 
                 to="/nfts" 
                 className="px-4 py-2 hover:bg-accent transition-colors"
@@ -143,23 +144,61 @@ export const Header = () => {
               >
                 NFTs
               </NavLink>
-              <NavLink 
-                to="/" 
-                className="px-4 py-2 hover:bg-accent transition-colors"
-                activeClassName="bg-accent"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Pools
-              </NavLink>
-              <NavLink 
-                to="/game" 
-                className="px-4 py-2 hover:bg-accent transition-colors"
-                activeClassName="bg-accent"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Game
-              </NavLink>
-              <div className="px-4 pt-2 flex flex-col gap-3">
+
+              {/* Token Hub Section */}
+              <div className="px-4 py-2">
+                <p className="text-sm font-semibold text-muted-foreground mb-2">Token Hub</p>
+                <div className="flex flex-col space-y-1 pl-2">
+                  <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
+                    Markets
+                  </a>
+                  <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
+                    IDO Launchpad
+                  </a>
+                  <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
+                    Airdrops
+                  </a>
+                  <NavLink 
+                    to="/game" 
+                    className="py-1.5 text-sm hover:text-primary transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Game
+                  </NavLink>
+                </div>
+              </div>
+
+              {/* Swap Section */}
+              <div className="px-4 py-2">
+                <p className="text-sm font-semibold text-muted-foreground mb-2">Swap</p>
+                <div className="flex flex-col space-y-1 pl-2">
+                  <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
+                    QuickSwap
+                  </a>
+                  <NavLink 
+                    to="/" 
+                    className="py-1.5 text-sm hover:text-primary transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Pools
+                  </NavLink>
+                </div>
+              </div>
+
+              {/* Fiat Section */}
+              <div className="px-4 py-2">
+                <p className="text-sm font-semibold text-muted-foreground mb-2">Fiat</p>
+                <div className="flex flex-col space-y-1 pl-2">
+                  <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
+                    Card
+                  </a>
+                  <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
+                    Buy Crypto
+                  </a>
+                </div>
+              </div>
+
+              <div className="px-4 pt-2 flex flex-col gap-3 border-t border-border mt-2">
                 <Button 
                   className="w-full"
                   onClick={() => {
