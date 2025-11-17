@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { NavigationDropdown } from "@/components/NavigationDropdown";
 import { NetworkSelector } from "@/components/NetworkSelector";
@@ -15,6 +15,18 @@ export const Header = () => {
   const toggleDropdown = (name: string) => {
     setActiveDropdown(activeDropdown === name ? null : name);
   };
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [mobileMenuOpen]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
