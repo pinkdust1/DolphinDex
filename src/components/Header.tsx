@@ -112,7 +112,9 @@ export const Header = () => {
 
             <div className="w-px h-5 bg-border hidden md:block" />
 
-            <SettingsDropdown />
+            <div className="hidden md:block">
+              <SettingsDropdown />
+            </div>
 
             {/* Mobile Menu Button */}
             <button
@@ -201,6 +203,19 @@ export const Header = () => {
 
               <div className="px-4 pt-2 border-t border-border mt-2">
                 <NetworkSelector />
+              </div>
+
+              {/* Settings */}
+              <div className="px-4 py-2">
+                <p className="text-sm font-semibold text-muted-foreground mb-2">Settings</p>
+                <div className="flex flex-col space-y-1 pl-2">
+                  <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
+                    Language & Currency
+                  </a>
+                  <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
+                    Appearance
+                  </a>
+                </div>
               </div>
             </nav>
           </div>
