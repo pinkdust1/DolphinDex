@@ -4,6 +4,7 @@ import { NavigationDropdown } from "@/components/NavigationDropdown";
 import { NetworkSelector } from "@/components/NetworkSelector";
 import { SettingsDropdown } from "@/components/SettingsDropdown";
 import { WalletConnectDialog } from "@/components/WalletConnectDialog";
+import { NavLink } from "@/components/NavLink";
 import { Menu, X } from "lucide-react";
 
 export const Header = () => {
@@ -26,7 +27,11 @@ export const Header = () => {
             </a>
             
             <nav className="hidden md:flex items-center gap-1">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors cursor-pointer">
+              <NavLink 
+                to="/trade" 
+                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
+                activeClassName="bg-accent"
+              >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-5 h-5">
                   <path d="M21.9445 14.2778H14.8334C14.5266 14.2778 14.2778 14.5266 14.2778 14.8334V21.9445C14.2778 22.2513 14.5266 22.5001 14.8334 22.5001H21.9445C22.2513 22.5001 22.5001 22.2513 22.5001 21.9445V14.8334C22.5001 14.5266 22.2513 14.2778 21.9445 14.2778Z" fill="currentColor"/>
                   <path d="M21.9445 3.61133H14.8334C14.5266 3.61133 14.2778 3.86006 14.2778 4.16688V11.278C14.2778 11.5848 14.5266 11.8336 14.8334 11.8336H21.9445C22.2513 11.8336 22.5001 11.5848 22.5001 11.278V4.16688C22.5001 3.86006 22.2513 3.61133 21.9445 3.61133Z" fill="currentColor"/>
@@ -34,7 +39,7 @@ export const Header = () => {
                   <path d="M11.278 14.2778H4.16688C3.86006 14.2778 3.61133 14.5266 3.61133 14.8334V21.9445C3.61133 22.2513 3.86006 22.5001 4.16688 22.5001H11.278C11.5848 22.5001 11.8336 22.2513 11.8336 21.9445V14.8334C11.8336 14.5266 11.5848 14.2778 11.278 14.2778Z" fill="currentColor"/>
                 </svg>
                 <span className="text-sm text-foreground">Trade</span>
-              </div>
+              </NavLink>
 
               <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors cursor-pointer">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-5 h-5">
