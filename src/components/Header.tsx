@@ -63,7 +63,7 @@ export const Header = () => {
                   { title: "Markets", desc: "An accurate market index for all XRPL Tokens." },
                   { title: "IDO Launchpad", desc: "Launch your own project on the XRPL, issue tokens and raise funds." },
                   { title: "Airdrops", desc: "Track & Promote Community Airdrops" },
-                  { title: "Bridge", desc: "Cross-chain asset transfers for gaming and DeFi applications." },
+                  { title: "Game", desc: "Explore gaming ecosystem and play-to-earn opportunities." },
                 ]}
                 isOpen={activeDropdown === "token"}
                 onToggle={() => toggleDropdown("token")}
