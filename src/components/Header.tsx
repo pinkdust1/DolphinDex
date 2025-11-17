@@ -41,13 +41,17 @@ export const Header = () => {
                 <span className="text-sm text-foreground">Trade</span>
               </NavLink>
 
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors cursor-pointer">
+              <NavLink 
+                to="/nfts" 
+                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
+                activeClassName="bg-accent"
+              >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-5 h-5">
                   <path fillRule="evenodd" clipRule="evenodd" d="M7.45586 21.6214C7.35588 21.788 7.47591 22 7.67023 22H18.0783C18.1661 22 18.2475 21.954 18.2927 21.8787L23.4897 13.2171C23.5897 13.0505 23.4697 12.8385 23.2753 12.8385H12.8673C12.7794 12.8385 12.6981 12.8845 12.6529 12.9598L7.45586 21.6214ZM11.1947 12.1285C11.2421 12.0493 11.2421 11.9505 11.1947 11.8713L5.99561 3.20065C5.89855 3.03878 5.66399 3.03872 5.56685 3.20055L0.362231 11.8712C0.314697 11.9504 0.314696 12.0494 0.362231 12.1286L5.56685 20.7992C5.66399 20.9611 5.89855 20.961 5.99561 20.7991L11.1947 12.1285Z" fill="currentColor"/>
                   <path d="M23.4882 10.783L18.2912 2.12137C18.246 2.04607 18.1647 2 18.0769 2H7.66878C7.47445 2 7.35443 2.21199 7.45441 2.37863L12.6514 11.0402C12.6966 11.1155 12.778 11.1616 12.8658 11.1616H23.2739C23.4682 11.1616 23.5882 10.9496 23.4882 10.783Z" fill="hsl(var(--muted-foreground))"/>
                 </svg>
                 <span className="text-sm text-foreground">NFTs</span>
-              </div>
+              </NavLink>
 
               <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors cursor-pointer">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-5 h-5">
