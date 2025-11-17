@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 const featuredNFTs = [
   {
     id: 1,
-    title: "Anonymous Astronauts: Sologenic Welcome",
+    title: "Anonymous Astronauts: Welcome",
     artist: "anonymous.astronauts.nfts",
     verified: true,
     image: "https://images.unsplash.com/photo-1634986666676-ec8fd927c23d?w=400&h=400&fit=crop"

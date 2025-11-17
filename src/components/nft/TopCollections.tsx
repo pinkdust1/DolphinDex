@@ -3,7 +3,7 @@ import { CheckCircle2, ChevronDown } from "lucide-react";
 
 const collections = [
   { id: 1, name: "Years of the Dragon", creator: "rnzfjpwfnL9y259SB3gVaENCxXthPyNEes", verified: false, image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=200&h=200&fit=crop" },
-  { id: 2, name: "Proud to be a part of Sologenic", creator: "tracklish", verified: false, image: "https://images.unsplash.com/photo-1579546929662-711aa81148cf?w=200&h=200&fit=crop" },
+  { id: 2, name: "Proud NFT Collection", creator: "tracklish", verified: false, image: "https://images.unsplash.com/photo-1579546929662-711aa81148cf?w=200&h=200&fit=crop" },
   { id: 3, name: "X Ray Mickeys", creator: "deadpunk", verified: false, image: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=200&h=200&fit=crop" },
   { id: 4, name: "Nordin The Viking", creator: "northernvoip", verified: true, image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop" },
   { id: 5, name: "CHOWBEYLA", creator: "tracklish", verified: false, image: "https://images.unsplash.com/photo-1634986666676-ec8fd927c23d?w=200&h=200&fit=crop" },
