@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart } from "lucide-react";
+import { NFTFilters } from "./NFTFilters";
 
 const nftItems = [
   {
@@ -109,7 +110,15 @@ export const NFTExplore = () => {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Explore NFTs</h2>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
+        <aside className="w-full lg:w-64 flex-shrink-0">
+          <div className="sticky top-24">
+            <NFTFilters />
+          </div>
+        </aside>
+        
+        <div className="flex-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {nftItems.map((nft) => (
           <Card 
             key={nft.id}
@@ -194,6 +203,8 @@ export const NFTExplore = () => {
             </div>
           </Card>
         ))}
+          </div>
+        </div>
       </div>
     </div>
   );
