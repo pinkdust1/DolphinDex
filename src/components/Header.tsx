@@ -127,28 +127,45 @@ export const Header = () => {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border bg-background">
             <nav className="flex flex-col py-4 space-y-2">
-              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
+              <NavLink 
+                to="/trade" 
+                className="px-4 py-2 hover:bg-accent transition-colors"
+                activeClassName="bg-accent"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 Trade
-              </a>
-              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
+              </NavLink>
+              <NavLink 
+                to="/nfts" 
+                className="px-4 py-2 hover:bg-accent transition-colors"
+                activeClassName="bg-accent"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 NFTs
-              </a>
-              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
-                Bridge
-              </a>
-              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
-                Token Hub
-              </a>
-              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
-                Swap
-              </a>
-              <a href="#" className="px-4 py-2 hover:bg-accent transition-colors">
-                Fiat
-              </a>
+              </NavLink>
+              <NavLink 
+                to="/" 
+                className="px-4 py-2 hover:bg-accent transition-colors"
+                activeClassName="bg-accent"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Pools
+              </NavLink>
+              <NavLink 
+                to="/game" 
+                className="px-4 py-2 hover:bg-accent transition-colors"
+                activeClassName="bg-accent"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Game
+              </NavLink>
               <div className="px-4 pt-2 flex flex-col gap-3">
                 <Button 
                   className="w-full"
-                  onClick={() => setWalletDialogOpen(true)}
+                  onClick={() => {
+                    setWalletDialogOpen(true);
+                    setMobileMenuOpen(false);
+                  }}
                 >
                   Connect Wallet
                 </Button>
