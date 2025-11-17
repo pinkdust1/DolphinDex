@@ -72,6 +72,8 @@ const layers = [
 export const NFTCarousel = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollY, setScrollY] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -92,6 +94,17 @@ export const NFTCarousel = () => {
     
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleCardClick = () => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
+    setActiveIndex((prev) => (prev + 1) % featuredNFTs.length);
+    
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 600);
+  };
 
   return (
     <div 
@@ -114,15 +127,25 @@ export const NFTCarousel = () => {
             <div className="relative w-full h-full flex flex-wrap items-center justify-center gap-6 px-8">
               {featuredNFTs
                 .slice(layerIndex * 2, layerIndex * 2 + 2)
-                .map((nft, index) => (
-                  <Card
-                    key={nft.id}
-                    className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all"
-                    style={{
-                      transform: `translateX(${index % 2 === 0 ? -150 : 150}px) rotate(${index % 2 === 0 ? -5 : 5}deg)`,
-                      width: layerIndex === 3 ? "280px" : layerIndex === 2 ? "240px" : layerIndex === 1 ? "200px" : "160px",
-                    }}
-                  >
+                .map((nft, index) => {
+                  const globalIndex = layerIndex * 2 + index;
+                  const isActive = globalIndex === activeIndex;
+                  
+                  return (
+                    <Card
+                      key={nft.id}
+                      onClick={handleCardClick}
+                      className={`overflow-hidden group cursor-pointer transition-all duration-500 ${
+                        isActive ? "shadow-2xl ring-2 ring-primary" : "hover:shadow-xl"
+                      } ${isTransitioning ? "scale-95" : ""}`}
+                      style={{
+                        transform: `translateX(${index % 2 === 0 ? -150 : 150}px) rotate(${index % 2 === 0 ? -5 : 5}deg) ${
+                          isActive ? "scale(1.1)" : ""
+                        }`,
+                        width: layerIndex === 3 ? "280px" : layerIndex === 2 ? "240px" : layerIndex === 1 ? "200px" : "160px",
+                        zIndex: isActive ? 50 : layerIndex,
+                      }}
+                    >
                     <div className="relative aspect-square">
                       <img
                         src={nft.image}
@@ -157,7 +180,8 @@ export const NFTCarousel = () => {
                       </div>
                     </div>
                   </Card>
-                ))}
+                  );
+                })}
             </div>
           </div>
         ))}
