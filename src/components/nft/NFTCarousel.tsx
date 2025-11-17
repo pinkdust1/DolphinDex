@@ -135,10 +135,9 @@ export const NFTCarousel = () => {
         {layers.map((layer, layerIndex) => (
           <div
             key={layerIndex}
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0 flex items-center justify-center transition-all duration-1000 ease-out"
             style={{
               transform: `translateY(${scrollY * layer.speed - 250}px) scale(${layer.scale})`,
-              transition: "transform 0.1s linear",
               filter: `blur(${layer.blur}px)`,
               opacity: layer.opacity,
             }}
@@ -154,51 +153,55 @@ export const NFTCarousel = () => {
                     <Card
                       key={nft.id}
                       onClick={handleCardClick}
-                      className={`overflow-hidden group cursor-pointer transition-all duration-500 ${
-                        isActive ? "shadow-2xl ring-2 ring-primary" : "hover:shadow-xl"
-                      } ${isTransitioning ? "scale-95" : ""}`}
+                      className={`overflow-hidden group cursor-pointer transition-all duration-700 ease-in-out ${
+                        isActive ? "shadow-2xl ring-2 ring-primary animate-pulse" : "hover:shadow-xl"
+                      } ${isTransitioning ? "opacity-70 scale-95" : "opacity-100"}`}
                       style={{
-                        transform: `translateX(${index % 2 === 0 ? -150 : 150}px) rotate(${index % 2 === 0 ? -5 : 5}deg) ${
-                          isActive ? "scale(1.1)" : ""
-                        }`,
+                        transform: `
+                          translateX(${index % 2 === 0 ? -150 : 150}px) 
+                          rotate(${index % 2 === 0 ? -5 : 5}deg) 
+                          ${isActive ? "scale(1.15)" : ""}
+                          ${isTransitioning && !isActive ? "translateY(20px)" : ""}
+                        `,
                         width: layerIndex === 3 ? "280px" : layerIndex === 2 ? "240px" : layerIndex === 1 ? "200px" : "160px",
                         zIndex: isActive ? 50 : layerIndex,
+                        transition: "all 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
                       }}
                     >
-                    <div className="relative aspect-square">
-                      <img
-                        src={nft.image}
-                        alt={nft.title}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                        <h3 
-                          className="font-bold mb-1 truncate"
-                          style={{
-                            fontSize: layerIndex === 3 ? "16px" : layerIndex === 2 ? "14px" : "12px",
-                          }}
-                        >
-                          {nft.title}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-white/20" />
-                          <span 
-                            className="flex items-center gap-1 truncate"
+                      <div className="relative aspect-square">
+                        <img
+                          src={nft.image}
+                          alt={nft.title}
+                          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-500" />
+                        <div className="absolute bottom-0 left-0 right-0 p-4 text-white transform transition-all duration-500 group-hover:translate-y-0">
+                          <h3 
+                            className="font-bold mb-1 truncate transition-all duration-300"
                             style={{
-                              fontSize: layerIndex === 3 ? "14px" : layerIndex === 2 ? "12px" : "10px",
+                              fontSize: layerIndex === 3 ? "16px" : layerIndex === 2 ? "14px" : "12px",
                             }}
                           >
-                            {nft.artist}
-                            {nft.verified && layerIndex >= 2 && (
-                              <CheckCircle2 className="h-3 w-3 text-blue-400 flex-shrink-0" />
-                            )}
-                          </span>
+                            {nft.title}
+                          </h3>
+                          <div className="flex items-center gap-2 transition-all duration-300">
+                            <div className="w-5 h-5 rounded-full bg-white/20 animate-pulse" />
+                            <span 
+                              className="flex items-center gap-1 truncate"
+                              style={{
+                                fontSize: layerIndex === 3 ? "14px" : layerIndex === 2 ? "12px" : "10px",
+                              }}
+                            >
+                              {nft.artist}
+                              {nft.verified && layerIndex >= 2 && (
+                                <CheckCircle2 className="h-3 w-3 text-blue-400 flex-shrink-0" />
+                              )}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Card>
+                    </Card>
                   );
                 })}
             </div>
@@ -209,6 +212,20 @@ export const NFTCarousel = () => {
       {/* Gradient overlays for smooth edges */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background pointer-events-none" />
+      
+      {/* Progress indicator */}
+      {!isPaused && (
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2">
+          {featuredNFTs.map((_, index) => (
+            <div
+              key={index}
+              className={`h-1 rounded-full transition-all duration-500 ${
+                index === activeIndex ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30"
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
