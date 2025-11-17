@@ -100,10 +100,11 @@ export const Header = () => {
 
           {/* Right Side */}
           <div className="flex items-center gap-3">
-            <NetworkSelector />
+            <div className="hidden md:block">
+              <NetworkSelector />
+            </div>
             
             <Button 
-              className="hidden md:flex"
               onClick={() => setWalletDialogOpen(true)}
             >
               Connect Wallet
@@ -198,16 +199,7 @@ export const Header = () => {
                 </div>
               </div>
 
-              <div className="px-4 pt-2 flex flex-col gap-3 border-t border-border mt-2">
-                <Button 
-                  className="w-full"
-                  onClick={() => {
-                    setWalletDialogOpen(true);
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  Connect Wallet
-                </Button>
+              <div className="px-4 pt-2 border-t border-border mt-2">
                 <NetworkSelector />
               </div>
             </nav>
