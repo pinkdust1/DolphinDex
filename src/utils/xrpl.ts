@@ -21,7 +21,7 @@ export function detectSearchType(query: string): SearchType {
   return 'unknown';
 }
 
-const API_BASE = 'https://xrplcluster.com';
+const RPC_URL = 'https://xrplcluster.com';
 
 export interface XRPLError {
   error: string;
@@ -29,15 +29,42 @@ export interface XRPLError {
 }
 
 /**
+ * Make RPC request to XRPL Cluster
+ */
+async function rpcRequest(method: string, params: any[]) {
+  try {
+    const response = await fetch(RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ method, params })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`RPC request failed: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('RPC request error:', error);
+    throw error;
+  }
+}
+
+/**
  * Fetch address data from XRPL Cluster API
  */
 export async function fetchAddressData(address: string) {
   try {
-    const response = await fetch(`${API_BASE}/address/${address}`);
-    if (!response.ok) {
-      throw new Error('Address not found');
+    const data = await rpcRequest('account_info', [{ 
+      account: address, 
+      ledger_index: 'validated' 
+    }]);
+    
+    if (data.error) {
+      throw new Error(data.error);
     }
-    return await response.json();
+    
+    return data;
   } catch (error) {
     console.error('Error fetching address data:', error);
     throw error;
@@ -49,11 +76,16 @@ export async function fetchAddressData(address: string) {
  */
 export async function fetchTransactionData(txHash: string) {
   try {
-    const response = await fetch(`${API_BASE}/transaction/${txHash}`);
-    if (!response.ok) {
-      throw new Error('Transaction not found');
+    const data = await rpcRequest('tx', [{ 
+      transaction: txHash, 
+      binary: false 
+    }]);
+    
+    if (data.error) {
+      throw new Error(data.error);
     }
-    return await response.json();
+    
+    return data;
   } catch (error) {
     console.error('Error fetching transaction data:', error);
     throw error;
@@ -65,11 +97,16 @@ export async function fetchTransactionData(txHash: string) {
  */
 export async function fetchPoolData(address: string) {
   try {
-    const response = await fetch(`${API_BASE}/pool/${address}`);
-    if (!response.ok) {
-      throw new Error('Pool not found');
+    const data = await rpcRequest('gateway_balances', [{ 
+      account: address, 
+      strict: true 
+    }]);
+    
+    if (data.error) {
+      throw new Error(data.error);
     }
-    return await response.json();
+    
+    return data;
   } catch (error) {
     console.error('Error fetching pool data:', error);
     throw error;
