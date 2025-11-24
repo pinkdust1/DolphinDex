@@ -3,6 +3,30 @@
 export type SearchType = 'address' | 'transaction' | 'unknown';
 
 /**
+ * Convert drops to XRP (1 XRP = 1,000,000 drops)
+ */
+export function dropsToXrp(drops: string | number): string {
+  const dropsNum = typeof drops === 'string' ? parseInt(drops) : drops;
+  return (dropsNum / 1000000).toFixed(6);
+}
+
+/**
+ * Convert Ripple epoch time to human readable date
+ * Ripple epoch starts at 2000-01-01T00:00:00Z (946684800 Unix timestamp)
+ */
+export function rippleTimeToDate(rippleTime: number): string {
+  const unixTime = (rippleTime + 946684800) * 1000;
+  return new Date(unixTime).toLocaleString('ru-RU', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+}
+
+/**
  * Determines the type of XRPL search query
  */
 export function detectSearchType(query: string): SearchType {
@@ -73,17 +97,17 @@ export async function fetchAddressData(address: string) {
       limit: 10
     }]);
     
-    // Parse balance from drops (1 XRP = 1,000,000 drops)
+    // Parse balance from drops
     const balance = accountInfo.result?.account_data?.Balance 
-      ? (parseInt(accountInfo.result.account_data.Balance) / 1000000).toFixed(2)
+      ? dropsToXrp(accountInfo.result.account_data.Balance)
       : '0';
     
     // Parse transactions
     const transactions = accountTx.result?.transactions?.map((tx: any) => ({
       hash: tx.tx?.hash || tx.hash,
       type: tx.tx?.TransactionType || 'Unknown',
-      amount: tx.tx?.Amount ? (typeof tx.tx.Amount === 'string' ? (parseInt(tx.tx.Amount) / 1000000).toFixed(2) + ' XRP' : 'Token') : '--',
-      date: tx.tx?.date ? new Date((tx.tx.date + 946684800) * 1000).toLocaleString('ru-RU') : '--'
+      amount: tx.tx?.Amount ? (typeof tx.tx.Amount === 'string' ? dropsToXrp(tx.tx.Amount) + ' XRP' : 'Token') : '--',
+      date: tx.tx?.date ? rippleTimeToDate(tx.tx.date) : '--'
     })) || [];
     
     return {
@@ -111,7 +135,22 @@ export async function fetchTransactionData(txHash: string) {
       throw new Error(data.error);
     }
     
-    return data.result;
+    const result = data.result;
+    
+    // Parse and format the transaction data
+    return {
+      ...result,
+      // Convert Amount from drops to XRP
+      amount: result.Amount && typeof result.Amount === 'string' 
+        ? dropsToXrp(result.Amount) 
+        : result.Amount,
+      // Convert Fee from drops to XRP
+      fee: result.Fee ? dropsToXrp(result.Fee) : null,
+      // Convert date from Ripple epoch to readable format
+      date: result.date ? rippleTimeToDate(result.date) : null,
+      // Keep original status or use meta.TransactionResult
+      status: result.status || result.meta?.TransactionResult || result.validated ? 'success' : 'pending'
+    };
   } catch (error) {
     console.error('Error fetching transaction data:', error);
     throw error;
