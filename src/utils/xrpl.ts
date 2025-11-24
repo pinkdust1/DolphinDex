@@ -55,16 +55,42 @@ async function rpcRequest(method: string, params: any[]) {
  */
 export async function fetchAddressData(address: string) {
   try {
-    const data = await rpcRequest('account_info', [{ 
+    // Get account info
+    const accountInfo = await rpcRequest('account_info', [{ 
       account: address, 
       ledger_index: 'validated' 
     }]);
     
-    if (data.error) {
-      throw new Error(data.error);
+    if (accountInfo.error) {
+      throw new Error(accountInfo.error);
     }
     
-    return data;
+    // Get account transactions
+    const accountTx = await rpcRequest('account_tx', [{ 
+      account: address,
+      ledger_index_min: -1,
+      ledger_index_max: -1,
+      limit: 10
+    }]);
+    
+    // Parse balance from drops (1 XRP = 1,000,000 drops)
+    const balance = accountInfo.result?.account_data?.Balance 
+      ? (parseInt(accountInfo.result.account_data.Balance) / 1000000).toFixed(2)
+      : '0';
+    
+    // Parse transactions
+    const transactions = accountTx.result?.transactions?.map((tx: any) => ({
+      hash: tx.tx?.hash || tx.hash,
+      type: tx.tx?.TransactionType || 'Unknown',
+      amount: tx.tx?.Amount ? (typeof tx.tx.Amount === 'string' ? (parseInt(tx.tx.Amount) / 1000000).toFixed(2) + ' XRP' : 'Token') : '--',
+      date: tx.tx?.date ? new Date((tx.tx.date + 946684800) * 1000).toLocaleString('ru-RU') : '--'
+    })) || [];
+    
+    return {
+      balance,
+      tokens: accountInfo.result?.account_data?.OwnerCount || 0,
+      transactions
+    };
   } catch (error) {
     console.error('Error fetching address data:', error);
     throw error;
@@ -85,7 +111,7 @@ export async function fetchTransactionData(txHash: string) {
       throw new Error(data.error);
     }
     
-    return data;
+    return data.result;
   } catch (error) {
     console.error('Error fetching transaction data:', error);
     throw error;
