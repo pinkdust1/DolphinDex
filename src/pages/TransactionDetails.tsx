@@ -167,7 +167,7 @@ const TransactionDetails = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold">
-                  {data.amount || data.Amount || '--'} XRP
+                  {data.amount} XRP
                 </p>
               </CardContent>
             </Card>
@@ -178,7 +178,7 @@ const TransactionDetails = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-xl">
-                  {data.fee || data.Fee || '--'} XRP
+                  {data.fee} XRP
                 </p>
               </CardContent>
             </Card>
@@ -189,7 +189,7 @@ const TransactionDetails = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  {data.date || data.date_time || '--'}
+                  {data.date || '--'}
                 </p>
               </CardContent>
             </Card>
