@@ -20,7 +20,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Pools />} />
+          <Route path="/" element={<Index />} />
+          <Route path="/pool" element={<Pools />} />
           <Route path="/pool/:address" element={<PoolDetails />} />
           <Route path="/trade" element={<Trade />} />
           <Route path="/nfts" element={<NFTs />} />
