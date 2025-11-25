@@ -182,7 +182,7 @@ export async function fetchAllAMMPools(limit: number = 50) {
     let marker = undefined;
     let count = 0;
     let iterations = 0;
-    const maxIterations = 20; // Prevent infinite loops
+    const maxIterations = 150; // Increased to scan more ledger entries for all AMM pools
     
     console.log('Starting AMM pool fetch...');
     

@@ -411,7 +411,7 @@ export default function Pools() {
     try {
       setLoading(true);
       setError(null);
-      const pools = await fetchAllAMMPools(100);
+      const pools = await fetchAllAMMPools(200);
       
       // Convert to Pool format
       const formattedPools: Pool[] = pools.map((pool, index) => ({
