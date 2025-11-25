@@ -169,7 +169,7 @@ const PoolDetails = () => {
 
           {/* Liquidity & History Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-4 sm:space-y-6">
               <LiquidityForm
                 token1={{
                   symbol: poolData.token1.symbol,
@@ -182,21 +182,27 @@ const PoolDetails = () => {
                   available: "--",
                 }}
               />
+              {/* Contributors on Desktop - below liquidity form */}
+              <div className="hidden lg:block">
+                <PoolContributors 
+                  contributors={contributors}
+                  loading={contributorsLoading}
+                  totalLpTokens={poolData.lpTokenBalance}
+                />
+              </div>
             </div>
             <div className="lg:col-span-2">
               <PoolHistoryTable transactions={formattedTransactions} />
             </div>
           </div>
 
-          {/* Contributors Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div className="lg:col-span-3">
-              <PoolContributors 
-                contributors={contributors}
-                loading={contributorsLoading}
-                totalLpTokens={poolData.lpTokenBalance}
-              />
-            </div>
+          {/* Contributors on Mobile - full width below */}
+          <div className="lg:hidden">
+            <PoolContributors 
+              contributors={contributors}
+              loading={contributorsLoading}
+              totalLpTokens={poolData.lpTokenBalance}
+            />
           </div>
         </div>
       </main>
