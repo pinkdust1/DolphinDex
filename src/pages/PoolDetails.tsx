@@ -6,11 +6,12 @@ import { ChartCard } from "@/components/pool/ChartCard";
 import { LiquidityChart } from "@/components/pool/LiquidityChart";
 import { LiquidityForm } from "@/components/pool/LiquidityForm";
 import { PoolHistoryTable } from "@/components/pool/PoolHistoryTable";
-import { fetchPoolData } from "@/utils/xrpl";
+import { fetchPoolData, fetchPoolContributors } from "@/utils/xrpl";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PoolContributors } from "@/components/pool/PoolContributors";
 
 const PoolDetails = () => {
   const { address } = useParams<{ address: string }>();
@@ -18,7 +19,9 @@ const PoolDetails = () => {
   const [priceTimeframe, setPriceTimeframe] = useState("1M");
   const [volumeTimeframe, setVolumeTimeframe] = useState("1M");
   const [poolData, setPoolData] = useState<any>(null);
+  const [contributors, setContributors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [contributorsLoading, setContributorsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,6 +33,20 @@ const PoolDetails = () => {
         setError(null);
         const data = await fetchPoolData(address);
         setPoolData(data);
+        
+        // Load contributors in background
+        setContributorsLoading(true);
+        const contributorsData = await fetchPoolContributors(address, data.ammId);
+        
+        // Calculate percentages
+        const totalLp = parseFloat(data.lpTokenBalance);
+        const contributorsWithPercentage = contributorsData.map((c: any) => ({
+          ...c,
+          percentage: ((parseFloat(c.lpTokens) / totalLp) * 100).toFixed(2)
+        }));
+        
+        setContributors(contributorsWithPercentage);
+        setContributorsLoading(false);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load pool data';
         setError(errorMessage);
@@ -168,6 +185,17 @@ const PoolDetails = () => {
             </div>
             <div className="lg:col-span-2">
               <PoolHistoryTable transactions={formattedTransactions} />
+            </div>
+          </div>
+
+          {/* Contributors Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="lg:col-span-3">
+              <PoolContributors 
+                contributors={contributors}
+                loading={contributorsLoading}
+                totalLpTokens={poolData.lpTokenBalance}
+              />
             </div>
           </div>
         </div>

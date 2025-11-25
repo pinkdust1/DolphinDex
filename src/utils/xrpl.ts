@@ -305,6 +305,96 @@ export async function fetchAllAMMPools(limit: number = 50) {
 }
 
 /**
+ * Fetch contributors (LP token holders) for an AMM pool
+ */
+export async function fetchPoolContributors(ammAccount: string, lpTokenCurrency: string) {
+  try {
+    const contributors: any[] = [];
+    
+    // Use ledger_data to find trustlines for the LP token
+    let marker = undefined;
+    let iterations = 0;
+    const maxIterations = 50;
+    
+    while (iterations < maxIterations) {
+      iterations++;
+      
+      const request: any = {
+        ledger_index: 'validated',
+        limit: 256,
+        type: 'state'
+      };
+      
+      if (marker) {
+        request.marker = marker;
+      }
+      
+      try {
+        const response = await rpcRequest('ledger_data', [request]);
+        
+        if (response.error || !response.result) {
+          break;
+        }
+        
+        const state = response.result.state || [];
+        
+        // Filter for RippleState entries (trustlines) for this LP token
+        const lpTrustlines = state.filter((entry: any) => {
+          if (entry.LedgerEntryType !== 'RippleState') return false;
+          
+          // Check if this trustline is for our LP token
+          const currency = entry.Balance?.currency;
+          const lowLimit = entry.LowLimit;
+          const highLimit = entry.HighLimit;
+          
+          // Check if either side of the trustline is the AMM account
+          const isAmmTrustline = 
+            lowLimit?.issuer === ammAccount || 
+            highLimit?.issuer === ammAccount;
+          
+          return isAmmTrustline && currency;
+        });
+        
+        for (const trustline of lpTrustlines) {
+          const balance = trustline.Balance?.value || '0';
+          const lowLimit = trustline.LowLimit;
+          const highLimit = trustline.HighLimit;
+          
+          // Determine which account is the holder (not the AMM)
+          const holderAccount = lowLimit?.issuer === ammAccount 
+            ? highLimit?.issuer 
+            : lowLimit?.issuer;
+          
+          if (holderAccount && parseFloat(balance) > 0) {
+            contributors.push({
+              address: holderAccount,
+              lpTokens: Math.abs(parseFloat(balance)).toFixed(6)
+            });
+          }
+        }
+        
+        marker = response.result.marker;
+        
+        if (!marker || contributors.length >= 20) {
+          break;
+        }
+      } catch (err) {
+        console.warn('Request failed:', err);
+        break;
+      }
+    }
+    
+    // Sort by LP tokens (highest first)
+    contributors.sort((a, b) => parseFloat(b.lpTokens) - parseFloat(a.lpTokens));
+    
+    return contributors.slice(0, 10); // Return top 10
+  } catch (error) {
+    console.error('Error fetching pool contributors:', error);
+    return [];
+  }
+}
+
+/**
  * Fetch AMM pool data from XRPL Cluster API
  */
 export async function fetchPoolData(address: string) {
