@@ -219,39 +219,54 @@ export async function fetchAllAMMPools(limit: number = 50) {
         }
         
         for (const entry of ammEntries) {
-          const asset1 = entry.Amount;
-          const asset2 = entry.Amount2;
+          // Use Asset and Asset2 from real XRPL data structure
+          const asset1 = entry.Asset;
+          const asset2 = entry.Asset2;
           
-          // Format tokens
-          const token1 = typeof asset1 === 'string' 
-            ? { symbol: 'XRP', amount: dropsToXrp(asset1), currency: 'XRP' }
+          // Format tokens - check if it's XRP (no issuer) or token (has issuer)
+          const token1 = asset1?.currency === 'XRP' || !asset1?.issuer
+            ? { symbol: 'XRP', amount: '0', currency: 'XRP' }
             : { 
-                symbol: asset1?.currency || 'Unknown', 
-                amount: asset1?.value || '0',
-                currency: asset1?.currency,
-                issuer: asset1?.issuer 
+                symbol: asset1.currency || 'Unknown', 
+                amount: '0',
+                currency: asset1.currency,
+                issuer: asset1.issuer 
               };
 
-          const token2 = typeof asset2 === 'string'
-            ? { symbol: 'XRP', amount: dropsToXrp(asset2), currency: 'XRP' }
+          const token2 = asset2?.currency === 'XRP' || !asset2?.issuer
+            ? { symbol: 'XRP', amount: '0', currency: 'XRP' }
             : { 
-                symbol: asset2?.currency || 'Unknown', 
-                amount: asset2?.value || '0',
-                currency: asset2?.currency,
-                issuer: asset2?.issuer 
+                symbol: asset2.currency || 'Unknown', 
+                amount: '0',
+                currency: asset2.currency,
+                issuer: asset2.issuer 
               };
 
-          // Calculate price
-          const amount1 = parseFloat(token1.amount);
-          const amount2 = parseFloat(token2.amount);
-          const price = amount1 > 0 ? (amount2 / amount1).toFixed(8) : '0';
+          // Decode hex currency codes
+          if (token1.currency && token1.currency.length === 40) {
+            try {
+              const decoded = Buffer.from(token1.currency, 'hex').toString('utf8').replace(/\0/g, '');
+              token1.symbol = decoded || token1.currency.substring(0, 6);
+            } catch (e) {
+              token1.symbol = token1.currency.substring(0, 6);
+            }
+          }
+          
+          if (token2.currency && token2.currency.length === 40) {
+            try {
+              const decoded = Buffer.from(token2.currency, 'hex').toString('utf8').replace(/\0/g, '');
+              token2.symbol = decoded || token2.currency.substring(0, 6);
+            } catch (e) {
+              token2.symbol = token2.currency.substring(0, 6);
+            }
+          }
 
           pools.push({
             address: entry.Account,
-            ammId: entry.AMMID,
+            ammId: entry.AMMID || 'N/A',
             token1,
             token2,
-            price,
+            price: '0', // Price requires amm_info request
             fee: entry.TradingFee ? (parseInt(entry.TradingFee) / 1000).toFixed(3) + '%' : '0%',
             lpToken: entry.LPTokenBalance?.value || '0'
           });
