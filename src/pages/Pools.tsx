@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
-import { Search, Grid3x3, List, Plus, Star, Clock, Loader2 } from "lucide-react";
+import { Search, Grid3x3, List, Plus, Star, Clock, Loader2, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchAllAMMPools } from "@/utils/xrpl";
 import { useToast } from "@/hooks/use-toast";
@@ -406,42 +406,46 @@ export default function Pools() {
   const poolsPerPage = 8;
 
   // Load real AMM pools from XRPL
-  useEffect(() => {
-    const loadPools = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const pools = await fetchAllAMMPools(100);
-        
-        // Convert to Pool format
-        const formattedPools: Pool[] = pools.map((pool, index) => ({
-          id: `real-${index}`,
-          address: pool.address,
-          token1: pool.token1.symbol,
-          token2: pool.token2.symbol,
-          price: pool.price,
-          priceToken: pool.token2.symbol,
-          fee: pool.fee,
-          amount1: pool.token1.amount,
-          amount2: pool.token2.amount
-        }));
-        
-        setRealPools(formattedPools);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load pools';
-        setError(errorMessage);
-        toast({
-          variant: "destructive",
-          title: "Ошибка",
-          description: errorMessage,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadPools = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const pools = await fetchAllAMMPools(100);
+      
+      // Convert to Pool format
+      const formattedPools: Pool[] = pools.map((pool, index) => ({
+        id: `real-${index}`,
+        address: pool.address,
+        token1: pool.token1.symbol,
+        token2: pool.token2.symbol,
+        price: pool.price,
+        priceToken: pool.token2.symbol,
+        fee: pool.fee,
+        amount1: pool.token1.amount,
+        amount2: pool.token2.amount
+      }));
+      
+      setRealPools(formattedPools);
+      toast({
+        title: "Обновлено",
+        description: `Загружено ${formattedPools.length} пулов`,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load pools';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "Ошибка",
+        description: errorMessage,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadPools();
-  }, [toast]);
+  }, []);
 
   // Use real pools if loaded, otherwise show static pools
   const poolsToDisplay = realPools.length > 0 ? realPools : allPools;
@@ -473,7 +477,15 @@ export default function Pools() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
             <h1 className="text-3xl md:text-4xl font-bold">XRPL Pools</h1>
-            {loading && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={loadPools}
+              disabled={loading}
+              className="shrink-0"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
           </div>
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
