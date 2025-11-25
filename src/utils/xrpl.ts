@@ -309,80 +309,36 @@ export async function fetchAllAMMPools(limit: number = 50) {
  */
 export async function fetchPoolContributors(ammAccount: string, lpTokenCurrency: string) {
   try {
-    const contributors: any[] = [];
+    console.log('Fetching contributors for AMM:', ammAccount);
     
-    // Use ledger_data to find trustlines for the LP token
-    let marker = undefined;
-    let iterations = 0;
-    const maxIterations = 50;
+    // Use account_lines to get all trustlines from the AMM account
+    const response = await rpcRequest('account_lines', [{ 
+      account: ammAccount,
+      ledger_index: 'validated'
+    }]);
     
-    while (iterations < maxIterations) {
-      iterations++;
-      
-      const request: any = {
-        ledger_index: 'validated',
-        limit: 256,
-        type: 'state'
-      };
-      
-      if (marker) {
-        request.marker = marker;
-      }
-      
-      try {
-        const response = await rpcRequest('ledger_data', [request]);
-        
-        if (response.error || !response.result) {
-          break;
-        }
-        
-        const state = response.result.state || [];
-        
-        // Filter for RippleState entries (trustlines) for this LP token
-        const lpTrustlines = state.filter((entry: any) => {
-          if (entry.LedgerEntryType !== 'RippleState') return false;
-          
-          // Check if this trustline is for our LP token
-          const currency = entry.Balance?.currency;
-          const lowLimit = entry.LowLimit;
-          const highLimit = entry.HighLimit;
-          
-          // Check if either side of the trustline is the AMM account
-          const isAmmTrustline = 
-            lowLimit?.issuer === ammAccount || 
-            highLimit?.issuer === ammAccount;
-          
-          return isAmmTrustline && currency;
-        });
-        
-        for (const trustline of lpTrustlines) {
-          const balance = trustline.Balance?.value || '0';
-          const lowLimit = trustline.LowLimit;
-          const highLimit = trustline.HighLimit;
-          
-          // Determine which account is the holder (not the AMM)
-          const holderAccount = lowLimit?.issuer === ammAccount 
-            ? highLimit?.issuer 
-            : lowLimit?.issuer;
-          
-          if (holderAccount && parseFloat(balance) > 0) {
-            contributors.push({
-              address: holderAccount,
-              lpTokens: Math.abs(parseFloat(balance)).toFixed(6)
-            });
-          }
-        }
-        
-        marker = response.result.marker;
-        
-        if (!marker || contributors.length >= 20) {
-          break;
-        }
-      } catch (err) {
-        console.warn('Request failed:', err);
-        break;
-      }
+    if (response.error || !response.result) {
+      console.error('Failed to fetch account lines:', response.error);
+      return [];
     }
+    
+    const lines = response.result.lines || [];
+    console.log(`Found ${lines.length} trustlines for AMM account`);
+    
+    // Filter and map to contributors
+    const contributors = lines
+      .filter((line: any) => {
+        // LP tokens have positive balance from AMM perspective (negative from holder)
+        const balance = parseFloat(line.balance);
+        return balance < 0; // Negative balance means the other account holds the tokens
+      })
+      .map((line: any) => ({
+        address: line.account,
+        lpTokens: Math.abs(parseFloat(line.balance)).toFixed(6)
+      }))
+      .filter((c: any) => parseFloat(c.lpTokens) > 0);
+    
+    console.log(`Found ${contributors.length} contributors with LP tokens`);
     
     // Sort by LP tokens (highest first)
     contributors.sort((a, b) => parseFloat(b.lpTokens) - parseFloat(a.lpTokens));
