@@ -12,7 +12,7 @@ const Index = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     const query = searchQuery.trim();
     
     if (!query) {
@@ -28,8 +28,15 @@ const Index = () => {
         navigate(`/transaction/${query}`);
         break;
       case 'address':
-        // Check if it's a pool or regular address by trying pool first
-        navigate(`/address/${query}`);
+        // Check if it's an AMM account
+        const { isAMMAccount } = await import('@/utils/xrpl');
+        const isAMM = await isAMMAccount(query);
+        
+        if (isAMM) {
+          navigate(`/pool/${query}`);
+        } else {
+          navigate(`/address/${query}`);
+        }
         break;
       case 'unknown':
         setError("Неверный формат. Введите корректный адрес XRPL или хэш транзакции");

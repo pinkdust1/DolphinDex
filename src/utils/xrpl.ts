@@ -158,20 +158,111 @@ export async function fetchTransactionData(txHash: string) {
 }
 
 /**
- * Fetch pool data from XRPL Cluster API
+ * Check if an address is an AMM account
+ */
+export async function isAMMAccount(address: string): Promise<boolean> {
+  try {
+    const accountInfo = await rpcRequest('account_info', [{ 
+      account: address, 
+      ledger_index: 'validated' 
+    }]);
+    
+    return !!accountInfo.result?.account_data?.AMMID;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Fetch AMM pool data from XRPL Cluster API
  */
 export async function fetchPoolData(address: string) {
   try {
-    const data = await rpcRequest('gateway_balances', [{ 
+    // First get account info to get AMMID
+    const accountInfo = await rpcRequest('account_info', [{ 
       account: address, 
-      strict: true 
+      ledger_index: 'validated' 
     }]);
     
-    if (data.error) {
-      throw new Error(data.error);
+    if (accountInfo.error) {
+      throw new Error(accountInfo.error);
     }
+
+    const ammId = accountInfo.result?.account_data?.AMMID;
     
-    return data;
+    if (!ammId) {
+      throw new Error('Not an AMM account');
+    }
+
+    // Get AMM info using amm_info method
+    const ammInfo = await rpcRequest('amm_info', [{ 
+      amm_account: address 
+    }]);
+    
+    if (ammInfo.error) {
+      throw new Error(ammInfo.error);
+    }
+
+    const amm = ammInfo.result?.amm;
+    
+    // Get recent transactions for the pool
+    const accountTx = await rpcRequest('account_tx', [{ 
+      account: address,
+      ledger_index_min: -1,
+      ledger_index_max: -1,
+      limit: 20
+    }]);
+
+    // Parse AMM data
+    const asset1 = amm?.amount;
+    const asset2 = amm?.amount2;
+    
+    // Format token data
+    const token1 = typeof asset1 === 'string' 
+      ? { symbol: 'XRP', amount: dropsToXrp(asset1), logo: '/amm/images/xrp.svg' }
+      : { 
+          symbol: asset1?.currency || 'Unknown', 
+          amount: asset1?.value || '0',
+          issuer: asset1?.issuer,
+          logo: '/amm/images/default.png' 
+        };
+
+    const token2 = typeof asset2 === 'string'
+      ? { symbol: 'XRP', amount: dropsToXrp(asset2), logo: '/amm/images/xrp.svg' }
+      : { 
+          symbol: asset2?.currency || 'Unknown', 
+          amount: asset2?.value || '0',
+          issuer: asset2?.issuer,
+          logo: '/amm/images/default.png' 
+        };
+
+    // Parse transactions
+    const transactions = accountTx.result?.transactions?.map((tx: any) => {
+      const txData = tx.tx || tx;
+      const meta = tx.meta;
+      
+      return {
+        hash: txData.hash,
+        type: txData.TransactionType,
+        account: txData.Account,
+        date: txData.date ? rippleTimeToDate(txData.date) : '--',
+        status: meta?.TransactionResult || 'unknown'
+      };
+    }).filter((tx: any) => 
+      tx.type === 'AMMDeposit' || 
+      tx.type === 'AMMWithdraw' || 
+      tx.type === 'Payment'
+    ) || [];
+
+    return {
+      ammId,
+      address,
+      token1,
+      token2,
+      fee: amm?.trading_fee ? (parseInt(amm.trading_fee) / 1000).toFixed(3) + '%' : '--',
+      lpTokenBalance: amm?.lp_token?.value || '0',
+      transactions
+    };
   } catch (error) {
     console.error('Error fetching pool data:', error);
     throw error;

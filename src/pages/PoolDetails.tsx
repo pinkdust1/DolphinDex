@@ -1,123 +1,152 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { PoolHeader } from "@/components/pool/PoolHeader";
 import { ChartCard } from "@/components/pool/ChartCard";
 import { LiquidityChart } from "@/components/pool/LiquidityChart";
 import { LiquidityForm } from "@/components/pool/LiquidityForm";
 import { PoolHistoryTable } from "@/components/pool/PoolHistoryTable";
+import { fetchPoolData } from "@/utils/xrpl";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const PoolDetails = () => {
+  const { address } = useParams<{ address: string }>();
+  const { toast } = useToast();
   const [priceTimeframe, setPriceTimeframe] = useState("1M");
   const [volumeTimeframe, setVolumeTimeframe] = useState("1M");
+  const [poolData, setPoolData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data - replace with actual data
-  const poolData = {
-    token1: {
-      symbol: "WRB",
-      logo: "/amm/images/default.png",
-    },
-    token2: {
-      symbol: "XRP",
-      logo: "/amm/images/xrp.svg",
-    },
-    fee: "0.998%",
-    address: "rE1tW1ZuRNjaTkEHaYpucbd6Cx7viMrzT6",
-    trustScore: "--",
-    currentPrice: "0.1857329022",
-    currentVolume: "191.401016",
-  };
+  useEffect(() => {
+    const loadPoolData = async () => {
+      if (!address) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetchPoolData(address);
+        setPoolData(data);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load pool data';
+        setError(errorMessage);
+        toast({
+          variant: "destructive",
+          title: "Ошибка",
+          description: errorMessage,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const liquidityData = {
-    token1: {
-      symbol: "WRB",
-      amount: "1205.03",
-      logo: "/amm/images/default.png",
-    },
-    token2: {
-      symbol: "XRP",
-      amount: "221.58",
-      logo: "/amm/images/xrp.svg",
-    },
-    totalValue: "1.4K",
-    myContribution: "0",
-  };
+    loadPoolData();
+  }, [address, toast]);
 
-  const liquidityFormData = {
-    token1: {
-      symbol: "WRB",
-      logo: "/amm/images/default.png",
-      available: "0",
-    },
-    token2: {
-      symbol: "XRP",
-      logo: "/amm/images/xrp.svg",
-      available: "--",
-    },
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-20 container mx-auto px-2 sm:px-4 pb-8">
+          <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+            <Skeleton className="h-32 w-full" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <Skeleton className="h-64" />
+              <Skeleton className="h-64" />
+              <Skeleton className="h-64" />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
-  const transactions = [
-    {
-      activity: "swap" as const,
-      fromAmount: "0.03",
-      fromCurrency: "XRP",
-      toAmount: "0.16",
-      toCurrency: "WRB",
-      account: "rLhDWnBFitrn8iW8e5m7bVKqFS5raK1NbP",
-      time: "15 Nov, 12:39:41",
-      txHash: "123...",
-    },
-    {
-      activity: "swap" as const,
-      fromAmount: "0.16",
-      fromCurrency: "WRB",
-      toAmount: "0.03",
-      toCurrency: "XRP",
-      account: "rLhDWnBFitrn8iW8e5m7bVKqFS5raK1NbP",
-      time: "15 Nov, 12:39:41",
-      txHash: "456...",
-    },
-    {
-      activity: "swap" as const,
-      fromAmount: "2.00",
-      fromCurrency: "XRP",
-      toAmount: "10.87",
-      toCurrency: "WRB",
-      account: "r3XXkB37eVXdjQLsBArQX4c985S7gguVuX",
-      time: "15 Nov, 12:39:40",
-      txHash: "789...",
-    },
-  ];
+  if (error || !poolData) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-20 container mx-auto px-2 sm:px-4 pb-8">
+          <Alert variant="destructive" className="max-w-2xl mx-auto">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error || 'Пул не найден'}
+            </AlertDescription>
+          </Alert>
+        </main>
+      </div>
+    );
+  }
+
+  // Calculate total value (simplified - in real app would need price data)
+  const totalValue = parseFloat(poolData.token1.amount) + parseFloat(poolData.token2.amount);
+  const formattedTotalValue = totalValue > 1000 
+    ? `${(totalValue / 1000).toFixed(1)}K` 
+    : totalValue.toFixed(2);
+
+  // Calculate current price
+  const currentPrice = (parseFloat(poolData.token2.amount) / parseFloat(poolData.token1.amount)).toFixed(8);
+
+  // Format transactions for display
+  const formattedTransactions = poolData.transactions.map((tx: any) => ({
+    activity: tx.type === 'Payment' ? 'swap' as const : 'add' as const,
+    fromAmount: '--',
+    fromCurrency: poolData.token1.symbol,
+    toAmount: '--',
+    toCurrency: poolData.token2.symbol,
+    account: tx.account,
+    time: tx.date,
+    txHash: tx.hash,
+  }));
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="pt-20 container mx-auto px-2 sm:px-4 pb-8">
         <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
-          <PoolHeader poolData={poolData} />
+          <PoolHeader 
+            poolData={{
+              token1: poolData.token1,
+              token2: poolData.token2,
+              fee: poolData.fee,
+              address: poolData.address,
+              trustScore: "--",
+            }} 
+          />
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <ChartCard
               title="Price"
-              currentValue={poolData.currentPrice}
-              symbol="XRP"
+              currentValue={currentPrice}
+              symbol={poolData.token2.symbol}
               timeframe={priceTimeframe}
               onTimeframeChange={setPriceTimeframe}
               chartType="price"
             />
             <ChartCard
               title="Volume Chart"
-              currentValue={poolData.currentVolume}
-              symbol="XRP"
+              currentValue="--"
+              symbol={poolData.token2.symbol}
               timeframe={volumeTimeframe}
               onTimeframeChange={setVolumeTimeframe}
               chartType="volume"
             />
             <LiquidityChart
-              token1={liquidityData.token1}
-              token2={liquidityData.token2}
-              totalValue={liquidityData.totalValue}
-              myContribution={liquidityData.myContribution}
+              token1={{
+                symbol: poolData.token1.symbol,
+                amount: poolData.token1.amount,
+                logo: poolData.token1.logo,
+              }}
+              token2={{
+                symbol: poolData.token2.symbol,
+                amount: poolData.token2.amount,
+                logo: poolData.token2.logo,
+              }}
+              totalValue={formattedTotalValue}
+              myContribution="0"
             />
           </div>
 
@@ -125,12 +154,20 @@ const PoolDetails = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="lg:col-span-1">
               <LiquidityForm
-                token1={liquidityFormData.token1}
-                token2={liquidityFormData.token2}
+                token1={{
+                  symbol: poolData.token1.symbol,
+                  logo: poolData.token1.logo,
+                  available: "0",
+                }}
+                token2={{
+                  symbol: poolData.token2.symbol,
+                  logo: poolData.token2.logo,
+                  available: "--",
+                }}
               />
             </div>
             <div className="lg:col-span-2">
-              <PoolHistoryTable transactions={transactions} />
+              <PoolHistoryTable transactions={formattedTransactions} />
             </div>
           </div>
         </div>
