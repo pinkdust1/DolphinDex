@@ -242,11 +242,15 @@ export async function fetchAllAMMPools(limit: number = 50) {
                 issuer: asset2.issuer 
               };
 
-          // Decode hex currency codes
+          // Decode hex currency codes (40 chars = 20 bytes hex)
           if (token1.currency && token1.currency.length === 40) {
             try {
-              const decoded = Buffer.from(token1.currency, 'hex').toString('utf8').replace(/\0/g, '');
-              token1.symbol = decoded || token1.currency.substring(0, 6);
+              let decoded = '';
+              for (let i = 0; i < token1.currency.length; i += 2) {
+                const byte = parseInt(token1.currency.substr(i, 2), 16);
+                if (byte !== 0) decoded += String.fromCharCode(byte);
+              }
+              token1.symbol = decoded.trim() || token1.currency.substring(0, 6);
             } catch (e) {
               token1.symbol = token1.currency.substring(0, 6);
             }
@@ -254,8 +258,12 @@ export async function fetchAllAMMPools(limit: number = 50) {
           
           if (token2.currency && token2.currency.length === 40) {
             try {
-              const decoded = Buffer.from(token2.currency, 'hex').toString('utf8').replace(/\0/g, '');
-              token2.symbol = decoded || token2.currency.substring(0, 6);
+              let decoded = '';
+              for (let i = 0; i < token2.currency.length; i += 2) {
+                const byte = parseInt(token2.currency.substr(i, 2), 16);
+                if (byte !== 0) decoded += String.fromCharCode(byte);
+              }
+              token2.symbol = decoded.trim() || token2.currency.substring(0, 6);
             } catch (e) {
               token2.symbol = token2.currency.substring(0, 6);
             }
