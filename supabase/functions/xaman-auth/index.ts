@@ -11,7 +11,8 @@ serve(async (req) => {
   }
 
   try {
-    const { action } = await req.json();
+    const body = await req.json();
+    const { action } = body;
     const apiKey = Deno.env.get('XAMAN_API_KEY');
     const apiSecret = Deno.env.get('XAMAN_API_SECRET');
 
@@ -57,7 +58,7 @@ serve(async (req) => {
     }
 
     if (action === 'check') {
-      const { uuid } = await req.json();
+      const { uuid } = body;
       
       if (!uuid) {
         throw new Error('UUID is required');
