@@ -59,11 +59,11 @@ export const PoolHeader = ({ poolData }: PoolHeaderProps) => {
               <span className="text-xl font-semibold text-foreground">
                 {poolData.token2.symbol}
               </span>
-              <div className="bg-secondary px-3 py-1 rounded-full">
+              {/* <div className="bg-secondary px-3 py-1 rounded-full">
                 <span className="text-sm font-medium text-secondary-foreground">
                   {poolData.fee}
                 </span>
-              </div>
+              </div> */}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span className="font-mono truncate max-w-[200px] sm:max-w-none">{poolData.address}</span>
@@ -79,7 +79,7 @@ export const PoolHeader = ({ poolData }: PoolHeaderProps) => {
 
         {/* Right Section - Trust Meter & Actions */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
-          <TrustMeter score={poolData.trustScore} />
+          {/* <TrustMeter score={poolData.trustScore} /> */}
 
           <div className="flex items-center gap-2 flex-wrap">
             <Button className="gap-2 h-9 text-sm">
