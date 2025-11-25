@@ -181,15 +181,16 @@ export async function fetchAllAMMPools(limit: number = 50) {
     const pools: any[] = [];
     let marker = undefined;
     let count = 0;
-    let emptyResultsCount = 0;
-    const maxEmptyResults = 3; // Stop after 3 consecutive empty results
+    let iterations = 0;
+    const maxIterations = 20; // Prevent infinite loops
     
-    // Use ledger_data to get AMM objects
-    while (count < limit) {
+    // Use ledger_data to get ALL ledger entries, then filter for AMM
+    while (count < limit && iterations < maxIterations) {
+      iterations++;
+      
       const request: any = {
-        type: 'amm',
         ledger_index: 'validated',
-        limit: Math.min(50, limit - count)
+        limit: 256 // Maximum for non-binary requests
       };
       
       if (marker) {
@@ -206,65 +207,55 @@ export async function fetchAllAMMPools(limit: number = 50) {
         
         const state = response.result.state || [];
         
-        // If we get empty results, increment counter
-        if (state.length === 0) {
-          emptyResultsCount++;
-          if (emptyResultsCount >= maxEmptyResults) {
-            console.log('Received multiple empty results, stopping pagination');
-            break;
-          }
-        } else {
-          emptyResultsCount = 0; // Reset counter on successful result
-        }
+        // Filter for AMM entries only
+        const ammEntries = state.filter((entry: any) => entry.LedgerEntryType === 'AMM');
         
-        for (const entry of state) {
-          if (entry.LedgerEntryType === 'AMM') {
-            const asset1 = entry.Amount;
-            const asset2 = entry.Amount2;
-            
-            // Format tokens
-            const token1 = typeof asset1 === 'string' 
-              ? { symbol: 'XRP', amount: dropsToXrp(asset1), currency: 'XRP' }
-              : { 
-                  symbol: asset1?.currency || 'Unknown', 
-                  amount: asset1?.value || '0',
-                  currency: asset1?.currency,
-                  issuer: asset1?.issuer 
-                };
+        for (const entry of ammEntries) {
+          const asset1 = entry.Amount;
+          const asset2 = entry.Amount2;
+          
+          // Format tokens
+          const token1 = typeof asset1 === 'string' 
+            ? { symbol: 'XRP', amount: dropsToXrp(asset1), currency: 'XRP' }
+            : { 
+                symbol: asset1?.currency || 'Unknown', 
+                amount: asset1?.value || '0',
+                currency: asset1?.currency,
+                issuer: asset1?.issuer 
+              };
 
-            const token2 = typeof asset2 === 'string'
-              ? { symbol: 'XRP', amount: dropsToXrp(asset2), currency: 'XRP' }
-              : { 
-                  symbol: asset2?.currency || 'Unknown', 
-                  amount: asset2?.value || '0',
-                  currency: asset2?.currency,
-                  issuer: asset2?.issuer 
-                };
+          const token2 = typeof asset2 === 'string'
+            ? { symbol: 'XRP', amount: dropsToXrp(asset2), currency: 'XRP' }
+            : { 
+                symbol: asset2?.currency || 'Unknown', 
+                amount: asset2?.value || '0',
+                currency: asset2?.currency,
+                issuer: asset2?.issuer 
+              };
 
-            // Calculate price
-            const amount1 = parseFloat(token1.amount);
-            const amount2 = parseFloat(token2.amount);
-            const price = amount1 > 0 ? (amount2 / amount1).toFixed(8) : '0';
+          // Calculate price
+          const amount1 = parseFloat(token1.amount);
+          const amount2 = parseFloat(token2.amount);
+          const price = amount1 > 0 ? (amount2 / amount1).toFixed(8) : '0';
 
-            pools.push({
-              address: entry.Account,
-              ammId: entry.AMMID,
-              token1,
-              token2,
-              price,
-              fee: entry.TradingFee ? (parseInt(entry.TradingFee) / 1000).toFixed(3) + '%' : '0%',
-              lpToken: entry.LPTokenBalance?.value || '0'
-            });
-            
-            count++;
-            if (count >= limit) break;
-          }
+          pools.push({
+            address: entry.Account,
+            ammId: entry.AMMID,
+            token1,
+            token2,
+            price,
+            fee: entry.TradingFee ? (parseInt(entry.TradingFee) / 1000).toFixed(3) + '%' : '0%',
+            lpToken: entry.LPTokenBalance?.value || '0'
+          });
+          
+          count++;
+          if (count >= limit) break;
         }
         
         marker = response.result.marker;
         
-        // If no more data, break
-        if (!marker) {
+        // If we have enough pools or no more data, break
+        if (count >= limit || !marker) {
           break;
         }
       } catch (err) {
