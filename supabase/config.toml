@@ -1,1 +1,4 @@
 project_id = "yyfurpcgryogwlgqlaor"
+
+[functions.xaman-auth]
+verify_jwt = false
