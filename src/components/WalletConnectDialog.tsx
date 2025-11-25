@@ -134,14 +134,13 @@ export const WalletConnectDialog = ({ open, onOpenChange }: WalletConnectDialogP
                 alt="QR Code" 
                 className="w-64 h-64 rounded-lg border-2 border-border"
               />
-              <a 
-                href={deepLink || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-primary hover:underline"
+              <Button
+                onClick={() => window.open(deepLink || '#', '_blank')}
+                className="w-full sm:w-auto"
+                size="lg"
               >
-                Open in XAMAN app
-              </a>
+                Open XAMAN Wallet
+              </Button>
               <p className="text-sm text-muted-foreground text-center">
                 Waiting for confirmation...
               </p>
