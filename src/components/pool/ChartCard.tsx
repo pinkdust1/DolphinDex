@@ -52,7 +52,7 @@ export const ChartCard = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="relative w-full h-[250px] sm:h-[330px] bg-secondary/20 rounded-lg flex items-center justify-center">
+        {/* <div className="relative w-full h-[250px] sm:h-[330px] bg-secondary/20 rounded-lg flex items-center justify-center">
           <div className="text-center text-muted-foreground">
             <svg
               className="w-16 h-16 mx-auto mb-2 opacity-50"
@@ -72,7 +72,7 @@ export const ChartCard = ({
               Integrate your preferred charting library
             </p>
           </div>
-        </div>
+        </div> */}
       </CardContent>
     </Card>
   );
