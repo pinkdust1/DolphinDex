@@ -397,6 +397,7 @@ export default function Pools() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [notifyNewPools, setNotifyNewPools] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -447,6 +448,17 @@ export default function Pools() {
     loadPools();
   }, []);
 
+  // Auto-refresh effect
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      loadPools();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
+
   // Use real pools if loaded, otherwise show static pools
   const poolsToDisplay = realPools.length > 0 ? realPools : allPools;
 
@@ -489,6 +501,10 @@ export default function Pools() {
           </div>
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Auto-refresh (30s)</span>
+              <Switch checked={autoRefresh} onCheckedChange={setAutoRefresh} />
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Notify New Pools</span>
               <Switch checked={notifyNewPools} onCheckedChange={setNotifyNewPools} />
