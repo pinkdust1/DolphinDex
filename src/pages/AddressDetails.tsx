@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ExternalLink, Copy, ArrowLeft } from "lucide-react";
-import { fetchAddressData } from "@/utils/xrpl";
+import { fetchAddressData, isAMMAccount } from "@/utils/xrpl";
 import { toast } from "@/hooks/use-toast";
 
 const AddressDetails = () => {
   const { address } = useParams<{ address: string }>();
+  const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +29,15 @@ const AddressDetails = () => {
     setError(null);
     
     try {
+      // Check if this is an AMM account first
+      const isAMM = await isAMMAccount(address);
+      
+      if (isAMM) {
+        // Redirect to pool page
+        navigate(`/pool/${address}`, { replace: true });
+        return;
+      }
+      
       const result = await fetchAddressData(address);
       setData(result);
     } catch (err) {
