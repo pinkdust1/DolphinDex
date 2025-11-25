@@ -426,7 +426,15 @@ export default function Pools() {
         amount2: pool.token2.amount
       }));
       
-      setRealPools(formattedPools);
+      // Sort: WRB/XRP pool always first
+      const WRB_XRP_POOL_ADDRESS = 'rE1tW1ZuRNjaTkEHaYpucbd6Cx7viMrzT6';
+      const sortedPools = formattedPools.sort((a, b) => {
+        if (a.address === WRB_XRP_POOL_ADDRESS) return -1;
+        if (b.address === WRB_XRP_POOL_ADDRESS) return 1;
+        return 0;
+      });
+      
+      setRealPools(sortedPools);
       toast({
         title: "Обновлено",
         description: `Загружено ${formattedPools.length} пулов`,
