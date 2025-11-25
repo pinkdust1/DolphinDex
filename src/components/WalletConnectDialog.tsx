@@ -41,6 +41,8 @@ export const WalletConnectDialog = ({ open, onOpenChange }: WalletConnectDialogP
             description: `Connected to ${data.account}`,
           });
           localStorage.setItem('xaman_account', data.account);
+          // Trigger storage event for same-tab updates
+          window.dispatchEvent(new Event('storage'));
           onOpenChange(false);
           resetState();
         }

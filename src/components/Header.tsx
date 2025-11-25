@@ -4,6 +4,7 @@ import { NavigationDropdown } from "@/components/NavigationDropdown";
 import { NetworkSelector } from "@/components/NetworkSelector";
 import { SettingsDropdown } from "@/components/SettingsDropdown";
 import { WalletConnectDialog } from "@/components/WalletConnectDialog";
+import { ConnectedWallet } from "@/components/ConnectedWallet";
 import { NavLink } from "@/components/NavLink";
 import { Menu, X } from "lucide-react";
 
@@ -11,9 +12,32 @@ export const Header = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
+  const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for connected wallet on mount
+    const savedWallet = localStorage.getItem('xaman_account');
+    if (savedWallet) {
+      setConnectedWallet(savedWallet);
+    }
+
+    // Listen for wallet connection events
+    const handleWalletConnect = () => {
+      const wallet = localStorage.getItem('xaman_account');
+      setConnectedWallet(wallet);
+    };
+
+    window.addEventListener('storage', handleWalletConnect);
+    return () => window.removeEventListener('storage', handleWalletConnect);
+  }, []);
 
   const toggleDropdown = (name: string) => {
     setActiveDropdown(activeDropdown === name ? null : name);
+  };
+
+  const handleDisconnect = () => {
+    localStorage.removeItem('xaman_account');
+    setConnectedWallet(null);
   };
 
   useEffect(() => {
@@ -116,11 +140,18 @@ export const Header = () => {
               <NetworkSelector />
             </div>
             
-            <Button 
-              onClick={() => setWalletDialogOpen(true)}
-            >
-              Connect Wallet
-            </Button>
+            {connectedWallet ? (
+              <ConnectedWallet 
+                address={connectedWallet} 
+                onDisconnect={handleDisconnect}
+              />
+            ) : (
+              <Button 
+                onClick={() => setWalletDialogOpen(true)}
+              >
+                Connect Wallet
+              </Button>
+            )}
 
             <div className="w-px h-5 bg-border hidden md:block" />
 
