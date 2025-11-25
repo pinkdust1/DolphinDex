@@ -184,6 +184,8 @@ export async function fetchAllAMMPools(limit: number = 50) {
     let iterations = 0;
     const maxIterations = 20; // Prevent infinite loops
     
+    console.log('Starting AMM pool fetch...');
+    
     // Use ledger_data to get ALL ledger entries, then filter for AMM
     while (count < limit && iterations < maxIterations) {
       iterations++;
@@ -206,9 +208,15 @@ export async function fetchAllAMMPools(limit: number = 50) {
         }
         
         const state = response.result.state || [];
+        console.log(`Iteration ${iterations}: Got ${state.length} ledger entries`);
         
         // Filter for AMM entries only
         const ammEntries = state.filter((entry: any) => entry.LedgerEntryType === 'AMM');
+        console.log(`Found ${ammEntries.length} AMM entries in this batch`);
+        
+        if (ammEntries.length > 0) {
+          console.log('Sample AMM entry:', ammEntries[0]);
+        }
         
         for (const entry of ammEntries) {
           const asset1 = entry.Amount;
@@ -265,6 +273,7 @@ export async function fetchAllAMMPools(limit: number = 50) {
       }
     }
     
+    console.log(`Finished fetching pools. Total found: ${pools.length}`);
     return pools;
   } catch (error) {
     console.error('Error fetching AMM pools:', error);
