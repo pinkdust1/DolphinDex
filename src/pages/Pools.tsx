@@ -18,6 +18,7 @@ interface Pool {
   fee: string;
   amount1: string;
   amount2: string;
+  address?: string; // Real AMM address from XRPL
 }
 
 const highlightedPools: Pool[] = [
@@ -29,7 +30,8 @@ const highlightedPools: Pool[] = [
     priceToken: "XRP",
     fee: "0.958%",
     amount1: "100",
-    amount2: "34582.26"
+    amount2: "34582.26",
+    address: "rE1tW1ZuRNjaTkEHaYpucbd6Cx7viMrzT6" // Real AMM address
   },
   {
     id: "2",
@@ -40,6 +42,7 @@ const highlightedPools: Pool[] = [
     fee: "0.659%",
     amount1: "2116711.53",
     amount2: "183876.64"
+    // No address - will be disabled
   },
   {
     id: "3",
@@ -50,6 +53,7 @@ const highlightedPools: Pool[] = [
     fee: "1%",
     amount1: "0",
     amount2: "0"
+    // No address - will be disabled
   }
 ];
 
@@ -273,8 +277,17 @@ const PoolCard = ({ pool }: { pool: Pool }) => {
     );
   };
 
+  const handleClick = () => {
+    if (pool.address) {
+      navigate(`/pool/${pool.address}`);
+    }
+  };
+
   return (
-    <Card className="p-4 hover:bg-accent/50 transition-all cursor-pointer" onClick={() => navigate(`/pool/${pool.id}`)}>
+    <Card 
+      className={`p-4 transition-all ${pool.address ? 'hover:bg-accent/50 cursor-pointer' : 'opacity-60 cursor-not-allowed'}`} 
+      onClick={handleClick}
+    >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center -space-x-2">
           <div className="w-9 h-9 rounded-full bg-muted border-2 border-background flex items-center justify-center z-10">
@@ -316,8 +329,8 @@ const PoolCard = ({ pool }: { pool: Pool }) => {
         </div>
       </div>
 
-      <Button variant="outline" className="w-full">
-        Enter Pool
+      <Button variant="outline" className="w-full" disabled={!pool.address}>
+        {pool.address ? 'Enter Pool' : 'Coming Soon'}
       </Button>
     </Card>
   );
@@ -325,6 +338,12 @@ const PoolCard = ({ pool }: { pool: Pool }) => {
 
 const HighlightSection = ({ title, icon, pools }: { title: string; icon: React.ReactNode; pools: Pool[] }) => {
   const navigate = useNavigate();
+  
+  const handlePoolClick = (pool: Pool) => {
+    if (pool.address) {
+      navigate(`/pool/${pool.address}`);
+    }
+  };
   
   return (
     <Card className="p-4">
@@ -336,8 +355,10 @@ const HighlightSection = ({ title, icon, pools }: { title: string; icon: React.R
         {pools.map((pool) => (
           <div
             key={pool.id}
-            className="flex items-center justify-between p-3 rounded-lg hover:bg-accent/50 transition-all cursor-pointer"
-            onClick={() => navigate(`/pool/${pool.id}`)}
+            className={`flex items-center justify-between p-3 rounded-lg transition-all ${
+              pool.address ? 'hover:bg-accent/50 cursor-pointer' : 'opacity-60 cursor-not-allowed'
+            }`}
+            onClick={() => handlePoolClick(pool)}
           >
             <div className="flex items-center gap-3 flex-1">
               <div className="flex items-center -space-x-2">
