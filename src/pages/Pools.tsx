@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
-import { Search, Grid3x3, List, Plus, Star, Clock } from "lucide-react";
+import { Search, Grid3x3, List, Plus, Star, Clock, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { fetchAllAMMPools } from "@/utils/xrpl";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Pool {
   id: string;
@@ -390,13 +394,59 @@ const HighlightSection = ({ title, icon, pools }: { title: string; icon: React.R
 };
 
 export default function Pools() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [notifyNewPools, setNotifyNewPools] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [realPools, setRealPools] = useState<Pool[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const poolsPerPage = 8;
 
-  const filteredPools = allPools.filter(pool => 
+  // Load real AMM pools from XRPL
+  useEffect(() => {
+    const loadPools = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const pools = await fetchAllAMMPools(100);
+        
+        // Convert to Pool format
+        const formattedPools: Pool[] = pools.map((pool, index) => ({
+          id: `real-${index}`,
+          address: pool.address,
+          token1: pool.token1.symbol,
+          token2: pool.token2.symbol,
+          price: pool.price,
+          priceToken: pool.token2.symbol,
+          fee: pool.fee,
+          amount1: pool.token1.amount,
+          amount2: pool.token2.amount
+        }));
+        
+        setRealPools(formattedPools);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load pools';
+        setError(errorMessage);
+        toast({
+          variant: "destructive",
+          title: "Ошибка",
+          description: errorMessage,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPools();
+  }, [toast]);
+
+  // Use real pools if loaded, otherwise show static pools
+  const poolsToDisplay = realPools.length > 0 ? realPools : allPools;
+
+  const filteredPools = poolsToDisplay.filter(pool => 
     pool.token1.toLowerCase().includes(searchQuery.toLowerCase()) ||
     pool.token2.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -421,7 +471,10 @@ export default function Pools() {
       <main className="container mx-auto px-4 py-8 mt-20">
         {/* Top Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold">XRPL Pools</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl md:text-4xl font-bold">XRPL Pools</h1>
+            {loading && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+          </div>
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex items-center gap-2">
@@ -435,24 +488,50 @@ export default function Pools() {
           </div>
         </div>
 
-        {/* Highlights */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Highlights</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <HighlightSection 
-              title="Featured" 
-              icon={<Star className="w-5 h-5 text-primary" />}
-              pools={highlightedPools}
-            />
-            <HighlightSection 
-              title="Recently Created" 
-              icon={<Clock className="w-5 h-5 text-primary" />}
-              pools={recentPools}
-            />
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Highlights - only show static highlights when not loading real data */}
+        {!loading && realPools.length === 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4">Highlights</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <HighlightSection 
+                title="Featured" 
+                icon={<Star className="w-5 h-5 text-primary" />}
+                pools={highlightedPools}
+              />
+              <HighlightSection 
+                title="Recently Created" 
+                icon={<Clock className="w-5 h-5 text-primary" />}
+                pools={recentPools}
+              />
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Loading skeleton */}
+        {loading && (
+          <div className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              <Skeleton className="h-64" />
+              <Skeleton className="h-64" />
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {[...Array(8)].map((_, i) => (
+                <Skeleton key={i} className="h-80" />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Search and View Toggle */}
+        {!loading && (
+        <>
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <Button
             variant={viewMode === "grid" ? "default" : "outline"}
@@ -485,9 +564,11 @@ export default function Pools() {
             <PoolCard key={pool.id} pool={pool} />
           ))}
         </div>
+        </>
+        )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {!loading && totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-8">
             <Button
               variant="outline"
