@@ -112,7 +112,7 @@ export const Header = () => {
                 </svg>}
                 items={[
                   { title: "QuickSwap", desc: "Swap in between Pools with the best rates on the XRP Ledger" },
-                  { title: "Pools", desc: "XRPL Pools to provide liquidity and earn rewards", href: "/" },
+                  { title: "Pools", desc: "XRPL Pools to provide liquidity and earn rewards", href: "/pool" },
                 ]}
                 isOpen={activeDropdown === "swap"}
                 onToggle={() => toggleDropdown("swap")}
@@ -222,7 +222,7 @@ export const Header = () => {
                     QuickSwap
                   </a>
                   <NavLink 
-                    to="/" 
+                    to="/pool" 
                     className="py-1.5 text-sm hover:text-primary transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
