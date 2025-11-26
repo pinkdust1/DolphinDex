@@ -1,6 +1,6 @@
 // XRPL utility functions
 
-export type SearchType = 'address' | 'transaction' | 'unknown';
+export type SearchType = 'address' | 'transaction' | 'token' | 'unknown';
 
 /**
  * Convert drops to XRP (1 XRP = 1,000,000 drops)
@@ -27,10 +27,33 @@ export function rippleTimeToDate(rippleTime: number): string {
 }
 
 /**
+ * Parse token format (CURRENCY.rISSUER or CURRENCY+rISSUER)
+ */
+export function parseTokenQuery(query: string): { currency: string; issuer: string } | null {
+  const cleanQuery = query.trim();
+  
+  // Format: CURRENCY.rISSUER or CURRENCY+rISSUER
+  const match = cleanQuery.match(/^([A-Za-z0-9]{3,40})[.+](r[A-Za-z0-9]{24,34})$/);
+  if (match) {
+    return {
+      currency: match[1],
+      issuer: match[2]
+    };
+  }
+  
+  return null;
+}
+
+/**
  * Determines the type of XRPL search query
  */
 export function detectSearchType(query: string): SearchType {
   const trimmedQuery = query.trim();
+  
+  // Check if it's a token (currency.issuer or currency+issuer format)
+  if (parseTokenQuery(trimmedQuery)) {
+    return 'token';
+  }
   
   // XRPL transaction hash is typically 64 characters (hex)
   if (/^[A-Fa-f0-9]{64}$/.test(trimmedQuery)) {
@@ -442,6 +465,91 @@ export async function fetchPoolData(address: string) {
     };
   } catch (error) {
     console.error('Error fetching pool data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch token data (trustlines, holders, transactions)
+ */
+export async function fetchTokenData(currency: string, issuer: string) {
+  try {
+    console.log('Fetching token data for:', currency, issuer);
+    
+    // Get issuer account info
+    const issuerInfo = await rpcRequest('account_info', [{ 
+      account: issuer,
+      ledger_index: 'validated'
+    }]);
+    
+    if (issuerInfo.error) {
+      throw new Error(issuerInfo.error);
+    }
+    
+    // Get all trustlines for this token (holders)
+    const lines = await rpcRequest('account_lines', [{ 
+      account: issuer,
+      limit: 200,
+      ledger_index: 'validated'
+    }]);
+    
+    if (lines.error) {
+      console.error('Error fetching account lines:', lines.error);
+      return {
+        currency,
+        issuer,
+        issuerInfo: issuerInfo.result.account_data,
+        totalSupply: 0,
+        holdersCount: 0,
+        topHolders: [],
+        transactions: []
+      };
+    }
+    
+    // Filter trustlines for this specific currency
+    const tokenHolders = (lines.result?.lines || [])
+      .filter((line: any) => line.currency === currency && parseFloat(line.balance) < 0)
+      .map((line: any) => ({
+        account: line.account,
+        balance: Math.abs(parseFloat(line.balance)),
+        limit: line.limit
+      }))
+      .sort((a: any, b: any) => b.balance - a.balance);
+    
+    // Calculate total supply (sum of all negative balances)
+    const totalSupply = tokenHolders.reduce((sum: number, holder: any) => sum + holder.balance, 0);
+    
+    // Get recent transactions involving this token
+    const transactions = await rpcRequest('account_tx', [
+      { 
+        account: issuer, 
+        limit: 20,
+        ledger_index_min: -1,
+        ledger_index_max: -1
+      }
+    ]);
+    
+    // Filter transactions for this currency
+    const tokenTransactions = (transactions.result?.transactions || [])
+      .filter((tx: any) => {
+        const meta = tx.tx;
+        if (meta.Amount && typeof meta.Amount === 'object') {
+          return meta.Amount.currency === currency && meta.Amount.issuer === issuer;
+        }
+        return false;
+      });
+    
+    return {
+      currency,
+      issuer,
+      issuerInfo: issuerInfo.result.account_data,
+      totalSupply,
+      holdersCount: tokenHolders.length,
+      topHolders: tokenHolders.slice(0, 10),
+      transactions: tokenTransactions
+    };
+  } catch (error) {
+    console.error('Error in fetchTokenData:', error);
     throw error;
   }
 }
