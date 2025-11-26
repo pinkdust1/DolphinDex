@@ -3,6 +3,27 @@
 export type SearchType = 'address' | 'transaction' | 'token' | 'unknown';
 
 /**
+ * Decode hex currency code to readable string
+ * XRPL uses 40-character hex strings for non-standard currency codes
+ */
+export function decodeCurrencyCode(currency: string): string {
+  if (!currency || currency === 'XRP' || currency.length !== 40) {
+    return currency;
+  }
+  
+  try {
+    let decoded = '';
+    for (let i = 0; i < currency.length; i += 2) {
+      const byte = parseInt(currency.substr(i, 2), 16);
+      if (byte !== 0) decoded += String.fromCharCode(byte);
+    }
+    return decoded.trim() || currency.substring(0, 6);
+  } catch (e) {
+    return currency.substring(0, 6);
+  }
+}
+
+/**
  * Convert drops to XRP (1 XRP = 1,000,000 drops)
  */
 export function dropsToXrp(drops: string | number): string {
@@ -265,32 +286,9 @@ export async function fetchAllAMMPools(limit: number = 50) {
                 issuer: asset2.issuer 
               };
 
-          // Decode hex currency codes (40 chars = 20 bytes hex)
-          if (token1.currency && token1.currency.length === 40) {
-            try {
-              let decoded = '';
-              for (let i = 0; i < token1.currency.length; i += 2) {
-                const byte = parseInt(token1.currency.substr(i, 2), 16);
-                if (byte !== 0) decoded += String.fromCharCode(byte);
-              }
-              token1.symbol = decoded.trim() || token1.currency.substring(0, 6);
-            } catch (e) {
-              token1.symbol = token1.currency.substring(0, 6);
-            }
-          }
-          
-          if (token2.currency && token2.currency.length === 40) {
-            try {
-              let decoded = '';
-              for (let i = 0; i < token2.currency.length; i += 2) {
-                const byte = parseInt(token2.currency.substr(i, 2), 16);
-                if (byte !== 0) decoded += String.fromCharCode(byte);
-              }
-              token2.symbol = decoded.trim() || token2.currency.substring(0, 6);
-            } catch (e) {
-              token2.symbol = token2.currency.substring(0, 6);
-            }
-          }
+          // Decode hex currency codes using utility function
+          token1.symbol = decodeCurrencyCode(token1.currency);
+          token2.symbol = decodeCurrencyCode(token2.currency);
 
           pools.push({
             address: entry.Account,
@@ -421,7 +419,7 @@ export async function fetchPoolData(address: string) {
     const token1 = typeof asset1 === 'string' 
       ? { symbol: 'XRP', amount: dropsToXrp(asset1), logo: '/amm/images/xrp.svg' }
       : { 
-          symbol: asset1?.currency || 'Unknown', 
+          symbol: decodeCurrencyCode(asset1?.currency || 'Unknown'), 
           amount: asset1?.value || '0',
           issuer: asset1?.issuer,
           logo: '/amm/images/default.png' 
@@ -430,7 +428,7 @@ export async function fetchPoolData(address: string) {
     const token2 = typeof asset2 === 'string'
       ? { symbol: 'XRP', amount: dropsToXrp(asset2), logo: '/amm/images/xrp.svg' }
       : { 
-          symbol: asset2?.currency || 'Unknown', 
+          symbol: decodeCurrencyCode(asset2?.currency || 'Unknown'), 
           amount: asset2?.value || '0',
           issuer: asset2?.issuer,
           logo: '/amm/images/default.png' 
