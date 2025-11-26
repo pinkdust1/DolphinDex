@@ -470,6 +470,37 @@ export async function fetchPoolData(address: string) {
 }
 
 /**
+ * Get issued tokens from an address
+ */
+export async function getIssuedTokens(address: string) {
+  try {
+    const lines = await rpcRequest('account_lines', [{ 
+      account: address,
+      limit: 200,
+      ledger_index: 'validated'
+    }]);
+    
+    if (lines.error) {
+      return [];
+    }
+    
+    // Get tokens where balance is negative (issued by this account)
+    const issuedTokens = (lines.result?.lines || [])
+      .filter((line: any) => parseFloat(line.balance) < 0)
+      .map((line: any) => ({
+        currency: line.currency,
+        issuer: address,
+        totalIssued: Math.abs(parseFloat(line.balance))
+      }));
+    
+    return issuedTokens;
+  } catch (error) {
+    console.error('Error getting issued tokens:', error);
+    return [];
+  }
+}
+
+/**
  * Fetch token data (trustlines, holders, transactions)
  */
 export async function fetchTokenData(currency: string, issuer: string) {
