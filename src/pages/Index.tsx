@@ -31,14 +31,42 @@ const Index = () => {
         navigate(`/transaction/${query}`);
         break;
       case 'address':
-        // Check if it's an AMM account
-        const { isAMMAccount } = await import('@/utils/xrpl');
+        // Check if it's an AMM account or token issuer
+        const { isAMMAccount, getIssuedTokens, fetchPoolData } = await import('@/utils/xrpl');
         const isAMM = await isAMMAccount(query);
         
         if (isAMM) {
-          navigate(`/pool/${query}`);
+          // Get pool data to find token in the pair
+          try {
+            const poolData = await fetchPoolData(query);
+            // Find first non-XRP token
+            const token = poolData.token1.symbol !== 'XRP' 
+              ? poolData.token1 
+              : poolData.token2.symbol !== 'XRP' 
+                ? poolData.token2 
+                : null;
+            
+            if (token && token.symbol !== 'XRP') {
+              // Navigate to token page
+              navigate(`/token/${token.symbol}.${token.issuer || query}`);
+            } else {
+              // If no token found, go to pool page
+              navigate(`/pool/${query}`);
+            }
+          } catch (err) {
+            navigate(`/pool/${query}`);
+          }
         } else {
-          navigate(`/address/${query}`);
+          // Check if this address issues any tokens
+          const issuedTokens = await getIssuedTokens(query);
+          
+          if (issuedTokens.length > 0) {
+            // Navigate to the first issued token
+            const firstToken = issuedTokens[0];
+            navigate(`/token/${firstToken.currency}.${query}`);
+          } else {
+            navigate(`/address/${query}`);
+          }
         }
         break;
       case 'unknown':
