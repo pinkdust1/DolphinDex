@@ -393,11 +393,13 @@ const HighlightSection = ({ title, icon, pools }: { title: string; icon: React.R
   );
 };
 
+const CACHE_KEY = 'xrpl_amm_pools_cache';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export default function Pools() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [notifyNewPools, setNotifyNewPools] = useState(false);
-  const [autoRefresh, setAutoRefresh] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -406,12 +408,30 @@ export default function Pools() {
   const [error, setError] = useState<string | null>(null);
   const poolsPerPage = 8;
 
-  // Load real AMM pools from XRPL
-  const loadPools = async () => {
+  // Load real AMM pools from XRPL with caching
+  const loadPools = async (forceRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
-      const pools = await fetchAllAMMPools(200);
+      
+      // Check cache first
+      if (!forceRefresh) {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          const age = Date.now() - timestamp;
+          
+          if (age < CACHE_DURATION) {
+            setRealPools(data);
+            setLoading(false);
+            console.log(`Loaded ${data.length} pools from cache (age: ${Math.round(age / 1000)}s)`);
+            return;
+          }
+        }
+      }
+      
+      // Fetch all pools from XRPL (increased limit to get all pools)
+      const pools = await fetchAllAMMPools(5000);
       
       // Convert to Pool format
       const formattedPools: Pool[] = pools.map((pool, index) => ({
@@ -435,6 +455,13 @@ export default function Pools() {
       });
       
       setRealPools(sortedPools);
+      
+      // Cache the pools
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        data: sortedPools,
+        timestamp: Date.now()
+      }));
+      
       toast({
         title: "Обновлено",
         description: `Загружено ${formattedPools.length} пулов`,
@@ -455,17 +482,6 @@ export default function Pools() {
   useEffect(() => {
     loadPools();
   }, []);
-
-  // Auto-refresh effect
-  useEffect(() => {
-    if (!autoRefresh) return;
-
-    const interval = setInterval(() => {
-      loadPools();
-    }, 30000); // 30 seconds
-
-    return () => clearInterval(interval);
-  }, [autoRefresh]);
 
   // Use real pools if loaded, otherwise show static pools
   const poolsToDisplay = realPools.length > 0 ? realPools : allPools;
@@ -500,7 +516,7 @@ export default function Pools() {
             <Button
               variant="outline"
               size="icon"
-              onClick={loadPools}
+              onClick={() => loadPools(true)}
               disabled={loading}
               className="shrink-0"
             >
@@ -509,10 +525,6 @@ export default function Pools() {
           </div>
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Auto-refresh (30s)</span>
-              <Switch checked={autoRefresh} onCheckedChange={setAutoRefresh} />
-            </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Notify New Pools</span>
               <Switch checked={notifyNewPools} onCheckedChange={setNotifyNewPools} />
