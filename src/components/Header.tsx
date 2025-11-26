@@ -7,6 +7,7 @@ import { WalletConnectDialog } from "@/components/WalletConnectDialog";
 import { ConnectedWallet } from "@/components/ConnectedWallet";
 import { NavLink } from "@/components/NavLink";
 import { Menu, X } from "lucide-react";
+import dolphinLogo from "@/assets/dolphin-logo.png";
 
 export const Header = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -58,8 +59,8 @@ export const Header = () => {
         <div className="flex items-center justify-between h-14">
           {/* Left Side */}
           <div className="flex items-center gap-8">
-            <a href="/" className="text-xl font-bold text-foreground">
-              LOGO
+            <a href="/" className="flex items-center">
+              <img src={dolphinLogo} alt="DolphinScan" className="h-8 w-8" />
             </a>
             
             <nav className="hidden md:flex items-center gap-1">
