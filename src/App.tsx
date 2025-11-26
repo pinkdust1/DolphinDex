@@ -8,6 +8,7 @@ import Pools from "./pages/Pools";
 import PoolDetails from "./pages/PoolDetails";
 import AddressDetails from "./pages/AddressDetails";
 import TransactionDetails from "./pages/TransactionDetails";
+import TokenDetails from "./pages/TokenDetails";
 import Trade from "./pages/Trade";
 import NFTs from "./pages/NFTs";
 import Game from "./pages/Game";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/pool/:address" element={<PoolDetails />} />
           <Route path="/address/:address" element={<AddressDetails />} />
           <Route path="/transaction/:transaction" element={<TransactionDetails />} />
+          <Route path="/token/:tokenId" element={<TokenDetails />} />
           <Route path="/trade" element={<Trade />} />
           <Route path="/nfts" element={<NFTs />} />
           <Route path="/game" element={<Game />} />
