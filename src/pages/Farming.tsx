@@ -213,12 +213,14 @@ export default function Farming() {
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs text-muted-foreground">Статус</span>
-                      <span className="text-xs font-medium text-green-500">Активен</span>
-                    </div>
+                    {pool.address === 'rE1tW1ZuRNjaTkEHaYpucbd6Cx7viMrzT6' && (
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs text-muted-foreground">Статус</span>
+                        <span className="text-xs font-medium text-green-500">Активен</span>
+                      </div>
+                    )}
 
-                    <Button 
+                    <Button
                       variant="outline" 
                       className="w-full group"
                       disabled={!pool.address}
