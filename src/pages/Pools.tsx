@@ -25,6 +25,43 @@ interface Pool {
   address?: string; // Real AMM address from XRPL
 }
 
+// Featured pools that always show at the top
+const featuredPools: Pool[] = [
+  {
+    id: "featured-1",
+    token1: "XRP",
+    token2: "BND",
+    price: "--",
+    priceToken: "BND",
+    fee: "0.5%",
+    amount1: "0",
+    amount2: "0",
+    address: undefined // Will be linked when pool exists
+  },
+  {
+    id: "featured-2",
+    token1: "XRP",
+    token2: "WRB",
+    price: "--",
+    priceToken: "WRB",
+    fee: "0.5%",
+    amount1: "0",
+    amount2: "0",
+    address: "rE1tW1ZuRNjaTkEHaYpucbd6Cx7viMrzT6"
+  },
+  {
+    id: "featured-3",
+    token1: "XRP",
+    token2: "SNK",
+    price: "--",
+    priceToken: "SNK",
+    fee: "0.5%",
+    amount1: "0",
+    amount2: "0",
+    address: undefined // Will be linked when pool exists
+  }
+];
+
 const highlightedPools: Pool[] = [
   {
     id: "1",
@@ -35,7 +72,7 @@ const highlightedPools: Pool[] = [
     fee: "0.958%",
     amount1: "100",
     amount2: "34582.26",
-    address: "rE1tW1ZuRNjaTkEHaYpucbd6Cx7viMrzT6" // Real AMM address
+    address: "rE1tW1ZuRNjaTkEHaYpucbd6Cx7viMrzT6"
   },
   {
     id: "2",
@@ -46,7 +83,6 @@ const highlightedPools: Pool[] = [
     fee: "0.659%",
     amount1: "2116711.53",
     amount2: "183876.64"
-    // No address - will be disabled
   },
   {
     id: "3",
@@ -57,7 +93,6 @@ const highlightedPools: Pool[] = [
     fee: "1%",
     amount1: "0",
     amount2: "0"
-    // No address - will be disabled
   }
 ];
 
@@ -542,6 +577,42 @@ export default function Pools() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+
+        {/* Featured Pools - Always visible */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Star className="w-5 h-5 text-primary" />
+            <h2 className="text-xl font-semibold">Featured Pools</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {featuredPools.map((pool) => (
+              <Card 
+                key={pool.id}
+                className={`p-4 transition-all ${pool.address ? 'hover:bg-accent/50 cursor-pointer' : 'opacity-70'}`}
+                onClick={() => pool.address && navigate(`/pool/${pool.address}`)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center -space-x-2">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center z-10">
+                      <span className="text-sm font-bold text-primary">{pool.token1[0]}</span>
+                    </div>
+                    <div className="w-9 h-9 rounded-full bg-muted border-2 border-background flex items-center justify-center">
+                      <span className="text-sm font-medium">{pool.token2[0]}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-lg">
+                      {pool.token1}/{pool.token2}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {pool.address ? 'Active' : 'Coming Soon'}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
 
         {/* Highlights - only show static highlights when not loading real data */}
         {!loading && realPools.length === 0 && (
