@@ -82,8 +82,8 @@ export default function Farming() {
       } catch (err) {
         toast({
           variant: "destructive",
-          title: "Ошибка",
-          description: "Не удалось загрузить пулы",
+          title: "Error",
+          description: "Failed to load pools",
         });
       } finally {
         setLoading(false);
@@ -113,13 +113,13 @@ export default function Farming() {
                 <Sprout className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               </div>
               <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold mb-2">Фарминг</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2">Farming</h1>
                 <p className="text-muted-foreground text-sm sm:text-base max-w-2xl">
-                  Вы можете добавить ликвидность в пул и пассивно получать награды в виде токенов.
+                  Add liquidity to a pool and passively earn rewards in tokens.
                 </p>
               </div>
               <Button disabled className="w-full sm:w-auto opacity-50 cursor-not-allowed">
-                Создать пул
+                Create Pool
               </Button>
             </div>
           </Card>
@@ -155,7 +155,7 @@ export default function Farming() {
                   className="w-full group"
                   disabled={!pool.address}
                 >
-                  {pool.address ? 'Перейти в пул' : 'Скоро'}
+                  {pool.address ? 'Enter Pool' : 'Coming Soon'}
                   {pool.address && <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />}
                 </Button>
               </Card>
@@ -164,7 +164,7 @@ export default function Farming() {
 
           {/* Pools Section */}
           <div>
-            <h2 className="text-xl font-semibold mb-4">AMM Пулы</h2>
+            <h2 className="text-xl font-semibold mb-4">AMM Pools</h2>
             
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -207,7 +207,7 @@ export default function Farming() {
                     </div>
 
                     <div className="mb-4">
-                      <p className="text-xs text-muted-foreground mb-1">Ликвидность</p>
+                      <p className="text-xs text-muted-foreground mb-1">Liquidity</p>
                       <p className="text-sm font-medium">
                         {formatNumber(pool.amount1)} {pool.token1} + {formatNumber(pool.amount2)} {pool.token2}
                       </p>
@@ -215,8 +215,8 @@ export default function Farming() {
 
                     {pool.address === 'rE1tW1ZuRNjaTkEHaYpucbd6Cx7viMrzT6' && (
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs text-muted-foreground">Статус</span>
-                        <span className="text-xs font-medium text-green-500">Активен</span>
+                        <span className="text-xs text-muted-foreground">Status</span>
+                        <span className="text-xs font-medium text-green-500">Active</span>
                       </div>
                     )}
 
@@ -225,7 +225,7 @@ export default function Farming() {
                       className="w-full group"
                       disabled={!pool.address}
                     >
-                      Перейти в пул
+                      Enter Pool
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Card>

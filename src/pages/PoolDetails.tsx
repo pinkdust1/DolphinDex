@@ -55,7 +55,7 @@ const PoolDetails = () => {
         setError(errorMessage);
         toast({
           variant: "destructive",
-          title: "Ошибка",
+          title: "Error",
           description: errorMessage,
         });
       } finally {
@@ -92,7 +92,7 @@ const PoolDetails = () => {
           <Alert variant="destructive" className="max-w-2xl mx-auto">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {error || 'Пул не найден'}
+              {error || 'Pool not found'}
             </AlertDescription>
           </Alert>
         </main>
@@ -143,16 +143,16 @@ const PoolDetails = () => {
                 <Sprout className="w-6 h-6 text-primary" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-1">Фарминг пула</h3>
+                <h3 className="text-lg font-semibold mb-1">Pool Farming</h3>
                 <p className="text-sm text-muted-foreground">
-                  Добавьте ликвидность и начните получать пассивные награды.
+                  Add liquidity and start earning passive rewards.
                 </p>
               </div>
               <Button 
                 onClick={() => navigate('/farming')}
                 className="w-full sm:w-auto group"
               >
-                Перейти к фармингу
+                Go to Farming
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
