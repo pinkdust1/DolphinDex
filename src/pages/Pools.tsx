@@ -580,10 +580,6 @@ export default function Pools() {
 
         {/* Featured Pools - Always visible */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Star className="w-5 h-5 text-primary" />
-            <h2 className="text-xl font-semibold">Featured Pools</h2>
-          </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {featuredPools.map((pool) => (
               <Card 
