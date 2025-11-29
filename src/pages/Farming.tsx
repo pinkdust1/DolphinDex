@@ -113,7 +113,7 @@ export default function Farming() {
                 <Sprout className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               </div>
               <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold mb-2">Фарминг ликвидности</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2">Фарминг</h1>
                 <p className="text-muted-foreground text-sm sm:text-base max-w-2xl">
                   Вы можете добавить ликвидность в пул и пассивно получать награды в виде токенов.
                 </p>
@@ -123,6 +123,44 @@ export default function Farming() {
               </Button>
             </div>
           </Card>
+
+          {/* Featured Pools */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { token1: "XRP", token2: "BND", address: undefined },
+              { token1: "XRP", token2: "WRB", address: "rE1tW1ZuRNjaTkEHaYpucbd6Cx7viMrzT6" },
+              { token1: "XRP", token2: "SNK", address: undefined }
+            ].map((pool, index) => (
+              <Card 
+                key={index}
+                className={`p-4 transition-all ${pool.address ? 'hover:bg-accent/50 cursor-pointer' : 'opacity-60'}`}
+                onClick={() => pool.address && navigate(`/pool/${pool.address}`)}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center -space-x-2">
+                    <div className="w-9 h-9 rounded-full bg-muted border-2 border-background flex items-center justify-center z-10">
+                      <span className="text-xs font-medium">{pool.token1[0]}</span>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center">
+                      <span className="text-xs font-medium">{pool.token2[0]}</span>
+                    </div>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-1 rounded ${pool.address ? 'bg-green-500/10 text-green-500' : 'bg-muted text-muted-foreground'}`}>
+                    {pool.address ? 'Active' : 'Coming Soon'}
+                  </span>
+                </div>
+                <p className="font-semibold text-lg mb-3">{pool.token1}/{pool.token2}</p>
+                <Button 
+                  variant="outline" 
+                  className="w-full group"
+                  disabled={!pool.address}
+                >
+                  {pool.address ? 'Перейти в пул' : 'Скоро'}
+                  {pool.address && <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />}
+                </Button>
+              </Card>
+            ))}
+          </div>
 
           {/* Pools Section */}
           <div>
