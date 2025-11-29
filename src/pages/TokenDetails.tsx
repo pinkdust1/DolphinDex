@@ -32,14 +32,14 @@ export default function TokenDetails() {
 
       const parsed = parseTokenQuery(tokenId);
       if (!parsed) {
-        throw new Error("Неверный формат токена. Используйте формат: CURRENCY.rISSUER");
+        throw new Error("Invalid token format. Use format: CURRENCY.rISSUER");
       }
 
       const tokenData = await fetchTokenData(parsed.currency, parsed.issuer);
       setData(tokenData);
     } catch (err: any) {
       console.error("Error loading token data:", err);
-      setError(err.message || "Не удалось загрузить данные токена");
+      setError(err.message || "Failed to load token data");
     } finally {
       setLoading(false);
     }
@@ -48,8 +48,8 @@ export default function TokenDetails() {
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: "Скопировано",
-      description: `${label} скопирован в буфер обмена`,
+      title: "Copied",
+      description: `${label} copied to clipboard`,
     });
   };
 
@@ -73,7 +73,7 @@ export default function TokenDetails() {
         <main className="container mx-auto px-4 py-8">
           <Button variant="ghost" onClick={() => navigate("/")} className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Назад
+            Back
           </Button>
 
           <div className="space-y-6">
@@ -97,11 +97,11 @@ export default function TokenDetails() {
         <main className="container mx-auto px-4 py-8">
           <Button variant="ghost" onClick={() => navigate("/")} className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Назад
+            Back
           </Button>
 
           <Alert variant="destructive">
-            <AlertDescription>{error || "Токен не найден"}</AlertDescription>
+            <AlertDescription>{error || "Token not found"}</AlertDescription>
           </Alert>
         </main>
       </div>
@@ -116,7 +116,7 @@ export default function TokenDetails() {
       <main className="container mx-auto px-4 py-8">
         <Button variant="ghost" onClick={() => navigate("/")} className="mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Назад
+          Back
         </Button>
 
         {/* Token Header */}
@@ -126,15 +126,15 @@ export default function TokenDetails() {
               <div className="space-y-2">
                 <CardTitle className="text-3xl flex items-center gap-2">
                   {currencyDisplay}
-                  <Badge variant="secondary">Токен</Badge>
+                  <Badge variant="secondary">Token</Badge>
                 </CardTitle>
                 <CardDescription className="flex items-center gap-2">
-                  <span className="font-mono text-sm">Эмитент: {data.issuer}</span>
+                  <span className="font-mono text-sm">Issuer: {data.issuer}</span>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6"
-                    onClick={() => handleCopy(data.issuer, "Адрес эмитента")}
+                    onClick={() => handleCopy(data.issuer, "Issuer address")}
                   >
                     <Copy className="w-3 h-3" />
                   </Button>
@@ -149,7 +149,7 @@ export default function TokenDetails() {
           {/* Total Supply */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Общее предложение</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Supply</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -161,26 +161,26 @@ export default function TokenDetails() {
           {/* Holders Count */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Держатели</CardTitle>
+              <CardTitle className="text-sm font-medium">Holders</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{data.holdersCount}</div>
-              <p className="text-xs text-muted-foreground mt-1">Уникальных кошельков</p>
+              <p className="text-xs text-muted-foreground mt-1">Unique wallets</p>
             </CardContent>
           </Card>
 
           {/* Issuer Balance */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Баланс эмитента</CardTitle>
+              <CardTitle className="text-sm font-medium">Issuer Balance</CardTitle>
               <ExternalLink className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {(parseInt(data.issuerInfo.Balance) / 1000000).toFixed(2)} XRP
               </div>
-              <p className="text-xs text-muted-foreground mt-1">На счете эмитента</p>
+              <p className="text-xs text-muted-foreground mt-1">On issuer account</p>
             </CardContent>
           </Card>
         </div>
@@ -189,8 +189,8 @@ export default function TokenDetails() {
           {/* Top Holders */}
           <Card>
             <CardHeader>
-              <CardTitle>Топ держатели</CardTitle>
-              <CardDescription>10 крупнейших держателей токена</CardDescription>
+              <CardTitle>Top Holders</CardTitle>
+              <CardDescription>Top 10 token holders</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -211,7 +211,7 @@ export default function TokenDetails() {
                           {holder.account.slice(0, 8)}...{holder.account.slice(-6)}
                         </button>
                         <p className="text-xs text-muted-foreground">
-                          {((holder.balance / data.totalSupply) * 100).toFixed(2)}% от общего
+                          {((holder.balance / data.totalSupply) * 100).toFixed(2)}% of total
                         </p>
                       </div>
                     </div>
@@ -228,8 +228,8 @@ export default function TokenDetails() {
           {/* Recent Transactions */}
           <Card>
             <CardHeader>
-              <CardTitle>Последние транзакции</CardTitle>
-              <CardDescription>Недавняя активность токена</CardDescription>
+              <CardTitle>Recent Transactions</CardTitle>
+              <CardDescription>Recent token activity</CardDescription>
             </CardHeader>
             <CardContent>
               {data.transactions.length > 0 ? (
@@ -249,14 +249,14 @@ export default function TokenDetails() {
                         </div>
                       </div>
                       <Badge variant={tx.meta.TransactionResult === "tesSUCCESS" ? "default" : "destructive"}>
-                        {tx.meta.TransactionResult === "tesSUCCESS" ? "Успешно" : "Ошибка"}
+                        {tx.meta.TransactionResult === "tesSUCCESS" ? "Success" : "Failed"}
                       </Badge>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  Нет транзакций
+                  No transactions
                 </div>
               )}
             </CardContent>

@@ -41,7 +41,7 @@ const AddressDetails = () => {
       const result = await fetchAddressData(address);
       setData(result);
     } catch (err) {
-      setError('Данные адреса не найдены');
+      setError('Address data not found');
       console.error(err);
     } finally {
       setLoading(false);
@@ -52,8 +52,8 @@ const AddressDetails = () => {
     if (address) {
       navigator.clipboard.writeText(address);
       toast({
-        title: "Скопировано",
-        description: "Адрес скопирован в буфер обмена",
+        title: "Copied",
+        description: "Address copied to clipboard",
       });
     }
   };
@@ -81,11 +81,11 @@ const AddressDetails = () => {
           <div className="max-w-7xl mx-auto space-y-6">
             <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Вернуться к поиску
+              Back to search
             </Link>
             <Alert variant="destructive">
               <AlertDescription>
-                {error || 'Не удалось загрузить данные адреса'}
+                {error || 'Failed to load address data'}
               </AlertDescription>
             </Alert>
           </div>
@@ -101,13 +101,13 @@ const AddressDetails = () => {
         <div className="space-y-6 max-w-7xl mx-auto">
           <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Вернуться к поиску
+            Back to search
           </Link>
 
           {/* Address Header */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Адрес XRPL</CardTitle>
+              <CardTitle className="text-2xl">XRPL Address</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2">
@@ -126,7 +126,7 @@ const AddressDetails = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Баланс XRP</CardTitle>
+                <CardTitle>XRP Balance</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{data.balance || '0'} XRP</p>
@@ -135,11 +135,11 @@ const AddressDetails = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Токены</CardTitle>
+                <CardTitle>Tokens</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  {data.tokens?.length || 0} токенов
+                  {data.tokens?.length || 0} tokens
                 </p>
               </CardContent>
             </Card>
@@ -148,17 +148,17 @@ const AddressDetails = () => {
           {/* Recent Transactions */}
           <Card>
             <CardHeader>
-              <CardTitle>Недавные транзакции</CardTitle>
+              <CardTitle>Recent Transactions</CardTitle>
             </CardHeader>
             <CardContent>
               {data.transactions && data.transactions.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Хэш</TableHead>
-                      <TableHead>Тип</TableHead>
-                      <TableHead>Сумма</TableHead>
-                      <TableHead>Дата</TableHead>
+                      <TableHead>Hash</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Date</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -185,7 +185,7 @@ const AddressDetails = () => {
                 </Table>
               ) : (
                 <p className="text-muted-foreground text-center py-4">
-                  Нет доступных транзакций
+                  No transactions available
                 </p>
               )}
             </CardContent>

@@ -498,15 +498,15 @@ export default function Pools() {
       }));
       
       toast({
-        title: "Обновлено",
-        description: `Загружено ${formattedPools.length} пулов`,
+        title: "Updated",
+        description: `Loaded ${formattedPools.length} pools`,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load pools';
       setError(errorMessage);
       toast({
         variant: "destructive",
-        title: "Ошибка",
+        title: "Error",
         description: errorMessage,
       });
     } finally {

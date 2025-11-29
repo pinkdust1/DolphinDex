@@ -30,7 +30,7 @@ const TransactionDetails = () => {
       const result = await fetchTransactionData(transaction);
       setData(result);
     } catch (err) {
-      setError('Транзакция не найдена');
+      setError('Transaction not found');
       console.error(err);
     } finally {
       setLoading(false);
@@ -41,8 +41,8 @@ const TransactionDetails = () => {
     if (transaction) {
       navigator.clipboard.writeText(transaction);
       toast({
-        title: "Скопировано",
-        description: "Хэш транзакции скопирован в буфер обмена",
+        title: "Copied",
+        description: "Transaction hash copied to clipboard",
       });
     }
   };
@@ -70,11 +70,11 @@ const TransactionDetails = () => {
           <div className="max-w-7xl mx-auto space-y-6">
             <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Вернуться к поиску
+              Back to search
             </Link>
             <Alert variant="destructive">
               <AlertDescription>
-                {error || 'Не удалось загрузить данные транзакции'}
+                {error || 'Failed to load transaction data'}
               </AlertDescription>
             </Alert>
           </div>
@@ -90,17 +90,17 @@ const TransactionDetails = () => {
         <div className="space-y-6 max-w-7xl mx-auto">
           <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Вернуться к поиску
+            Back to search
           </Link>
 
           {/* Transaction Header */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Транзакция XRPL</CardTitle>
+              <CardTitle className="text-2xl">XRPL Transaction</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Хэш транзакции</p>
+                <p className="text-sm font-medium text-muted-foreground mb-2">Transaction Hash</p>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-mono break-all">{transaction}</span>
                   <button
@@ -114,7 +114,7 @@ const TransactionDetails = () => {
               
               {data.status && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Статус</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Status</p>
                   <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
                     data.status === 'success' || data.status === 'tesSUCCESS' 
                       ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
@@ -131,7 +131,7 @@ const TransactionDetails = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Отправитель</CardTitle>
+                <CardTitle>Sender</CardTitle>
               </CardHeader>
               <CardContent>
                 <Link 
@@ -146,7 +146,7 @@ const TransactionDetails = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Получатель</CardTitle>
+                <CardTitle>Recipient</CardTitle>
               </CardHeader>
               <CardContent>
                 <Link 
@@ -163,7 +163,7 @@ const TransactionDetails = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Сумма</CardTitle>
+                <CardTitle>Amount</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold">
@@ -174,7 +174,7 @@ const TransactionDetails = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Комиссия</CardTitle>
+                <CardTitle>Fee</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xl">
@@ -185,7 +185,7 @@ const TransactionDetails = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Дата</CardTitle>
+                <CardTitle>Date</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
@@ -198,12 +198,12 @@ const TransactionDetails = () => {
           {/* Additional Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Дополнительная информация</CardTitle>
+              <CardTitle>Additional Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Тип транзакции</p>
+                  <p className="text-sm font-medium text-muted-foreground">Transaction Type</p>
                   <p className="text-sm">{data.type || data.TransactionType || '--'}</p>
                 </div>
                 <div>

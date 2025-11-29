@@ -16,7 +16,7 @@ const Index = () => {
     const query = searchQuery.trim();
     
     if (!query) {
-      setError("Введите адрес, транзакцию, пул или токен");
+      setError("Enter an address, transaction, pool, or token");
       return;
     }
 
@@ -53,7 +53,7 @@ const Index = () => {
         }
         break;
       case 'unknown':
-        setError("Неверный формат. Введите корректный адрес XRPL, токен (CURRENCY.rISSUER) или хэш транзакции");
+        setError("Invalid format. Enter a valid XRPL address, token (CURRENCY.rISSUER), or transaction hash");
         break;
     }
   };
@@ -76,7 +76,7 @@ const Index = () => {
             <div className="flex gap-2">
               <Input
                 type="text"
-                placeholder="Поиск адресов, транзакций, пулов, токенов..."
+                placeholder="Search addresses, transactions, pools, tokens..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);

@@ -30,7 +30,7 @@ export const PoolContributors = ({ contributors, loading, totalLpTokens }: PoolC
     return (
       <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-foreground">Контрибьюторы</CardTitle>
+          <CardTitle className="text-foreground">Contributors</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <Skeleton className="h-48 w-full" />
@@ -48,11 +48,11 @@ export const PoolContributors = ({ contributors, loading, totalLpTokens }: PoolC
     return (
       <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-foreground">Контрибьюторы</CardTitle>
+          <CardTitle className="text-foreground">Contributors</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
-            Нет данных о контрибьюторах
+            No contributor data available
           </div>
         </CardContent>
       </Card>
@@ -68,7 +68,7 @@ export const PoolContributors = ({ contributors, loading, totalLpTokens }: PoolC
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-foreground">Контрибьюторы</CardTitle>
+        <CardTitle className="text-foreground">Contributors</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
@@ -95,9 +95,9 @@ export const PoolContributors = ({ contributors, loading, totalLpTokens }: PoolC
 
           {/* Contributors List Header */}
           <div className="grid grid-cols-[1fr,auto,auto] gap-4 px-3 pb-2 border-b border-border text-xs text-muted-foreground font-medium">
-            <div>Кошелек</div>
-            <div className="text-right">Доля</div>
-            <div className="text-right w-20">LP Токены</div>
+            <div>Wallet</div>
+            <div className="text-right">Share</div>
+            <div className="text-right w-20">LP Tokens</div>
           </div>
 
           {/* Contributors List */}
