@@ -164,7 +164,7 @@ export default function Farming() {
 
           {/* Pools Section */}
           <div>
-            <h2 className="text-xl font-semibold mb-4">AMM Pools</h2>
+            <h2 className="text-xl font-semibold mb-4">Pools</h2>
             
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
