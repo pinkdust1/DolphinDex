@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { PoolHeader } from "@/components/pool/PoolHeader";
 import { ChartCard } from "@/components/pool/ChartCard";
@@ -9,15 +9,14 @@ import { PoolHistoryTable } from "@/components/pool/PoolHistoryTable";
 import { fetchPoolData, fetchPoolContributors } from "@/utils/xrpl";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Sprout, ArrowRight } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PoolContributors } from "@/components/pool/PoolContributors";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
+const WRB_XRP_POOL_ADDRESS = "rE1tW1ZuRNjaTkEHaYpucbd6Cx7viMrzT6";
 
 const PoolDetails = () => {
   const { address } = useParams<{ address: string }>();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [priceTimeframe, setPriceTimeframe] = useState("1M");
   const [volumeTimeframe, setVolumeTimeframe] = useState("1M");
@@ -26,6 +25,8 @@ const PoolDetails = () => {
   const [loading, setLoading] = useState(true);
   const [contributorsLoading, setContributorsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isWrbXrpPool = address === WRB_XRP_POOL_ADDRESS;
 
   useEffect(() => {
     const loadPoolData = async () => {
@@ -133,30 +134,9 @@ const PoolDetails = () => {
               fee: poolData.fee,
               address: poolData.address,
               trustScore: "--",
-            }} 
+            }}
+            showFarmingActive={isWrbXrpPool}
           />
-
-          {/* Farming Block */}
-          <Card className="p-4 sm:p-6 bg-gradient-to-r from-primary/5 via-background to-accent/5 border-primary/20">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-                <Sprout className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-1">Pool Farming</h3>
-                <p className="text-sm text-muted-foreground">
-                  Add liquidity and start earning passive rewards.
-                </p>
-              </div>
-              <Button 
-                onClick={() => navigate('/farming')}
-                className="w-full sm:w-auto group"
-              >
-                Go to Farming
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </div>
-          </Card>
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
