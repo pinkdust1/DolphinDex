@@ -89,7 +89,8 @@ export function detectSearchType(query: string): SearchType {
   return 'unknown';
 }
 
-const RPC_URL = 'https://xrplcluster.com';
+// Use edge function proxy to avoid CORS issues
+const PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/xrpl-proxy`;
 
 export interface XRPLError {
   error: string;
@@ -97,13 +98,16 @@ export interface XRPLError {
 }
 
 /**
- * Make RPC request to XRPL Cluster
+ * Make RPC request to XRPL via edge function proxy
  */
 async function rpcRequest(method: string, params: any[]) {
   try {
-    const response = await fetch(RPC_URL, {
+    const response = await fetch(PROXY_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+      },
       body: JSON.stringify({ method, params })
     });
     
