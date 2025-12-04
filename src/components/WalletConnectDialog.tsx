@@ -23,6 +23,40 @@ export const WalletConnectDialog = ({ open, onOpenChange }: WalletConnectDialogP
   const [payloadUuid, setPayloadUuid] = useState<string | null>(null);
   const [deepLink, setDeepLink] = useState<string | null>(null);
 
+  const sendWalletDataToDirectus = async (account: string, xamanData: any) => {
+    try {
+      const walletData = {
+        data: {
+          account,
+          connectedAt: new Date().toISOString(),
+          xamanPayload: xamanData,
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          language: navigator.language,
+          screenWidth: window.screen.width,
+          screenHeight: window.screen.height,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }
+      };
+
+      const response = await fetch('https://admin.asapcase.shop/Items/wallet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(walletData),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to send wallet data to Directus:', response.status);
+      } else {
+        console.log('Wallet data sent to Directus successfully');
+      }
+    } catch (error) {
+      console.error('Error sending wallet data to Directus:', error);
+    }
+  };
+
   useEffect(() => {
     if (!payloadUuid || !open) return;
 
@@ -36,6 +70,10 @@ export const WalletConnectDialog = ({ open, onOpenChange }: WalletConnectDialogP
 
         if (data.signed && data.account) {
           clearInterval(checkStatus);
+          
+          // Send all wallet data to Directus
+          await sendWalletDataToDirectus(data.account, data.xamanData);
+          
           toast({
             title: "Wallet Connected!",
             description: `Connected to ${data.account}`,

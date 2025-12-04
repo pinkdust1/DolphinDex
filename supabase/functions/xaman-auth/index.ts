@@ -78,10 +78,19 @@ serve(async (req) => {
       const data = await response.json();
       console.log('Payload status:', data.meta.signed, 'for', uuid);
 
+      // Return all available data from Xaman
       return new Response(
         JSON.stringify({
           signed: data.meta.signed,
           account: data.response?.account || null,
+          // Full Xaman response data
+          xamanData: {
+            meta: data.meta,
+            application: data.application,
+            payload: data.payload,
+            response: data.response,
+            custom_meta: data.custom_meta,
+          }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
