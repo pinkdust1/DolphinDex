@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { NavigationDropdown } from "@/components/NavigationDropdown";
 import { NetworkSelector } from "@/components/NetworkSelector";
@@ -6,14 +7,23 @@ import { SettingsDropdown } from "@/components/SettingsDropdown";
 import { WalletConnectDialog } from "@/components/WalletConnectDialog";
 import { ConnectedWallet } from "@/components/ConnectedWallet";
 import { NavLink } from "@/components/NavLink";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X } from "lucide-react";
 import dolphinLogo from "@/assets/dolphin-logo.png";
+import dolphinLogoWhite from "@/assets/dolphin-logo-white.png";
 
 export const Header = () => {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
+
+  // Ensure theme is mounted before rendering logo
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     // Check for connected wallet on mount
@@ -60,7 +70,11 @@ export const Header = () => {
           {/* Left Side */}
           <div className="flex items-center gap-8">
             <a href="/" className="flex items-center">
-              <img src={dolphinLogo} alt="DolphinScan" className="h-8 w-8" />
+              <img 
+                src={mounted && resolvedTheme === "dark" ? dolphinLogoWhite : dolphinLogo} 
+                alt="DolphinScan" 
+                className="h-8 w-8" 
+              />
             </a>
             
             <nav className="hidden md:flex items-center gap-1">
@@ -154,6 +168,10 @@ export const Header = () => {
                 Connect Wallet
               </Button>
             )}
+
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
 
             <div className="w-px h-5 bg-border hidden md:block" />
 
@@ -264,9 +282,10 @@ export const Header = () => {
                   <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
                     Language & Currency
                   </a>
-                  <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
-                    Appearance
-                  </a>
+                  <div className="py-1.5 flex items-center justify-between">
+                    <span className="text-sm">Theme</span>
+                    <ThemeToggle />
+                  </div>
                 </div>
               </div>
             </nav>

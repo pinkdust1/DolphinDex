@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Pools from "./pages/Pools";
 import PoolDetails from "./pages/PoolDetails";
@@ -18,28 +19,30 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/pool" element={<Pools />} />
-          <Route path="/pool/:address" element={<PoolDetails />} />
-          <Route path="/farming" element={<Farming />} />
-          <Route path="/address/:address" element={<AddressDetails />} />
-          <Route path="/transaction/:transaction" element={<TransactionDetails />} />
-          <Route path="/token/:tokenId" element={<TokenDetails />} />
-          <Route path="/trade" element={<Trade />} />
-          <Route path="/nfts" element={<NFTs />} />
-          <Route path="/game" element={<Game />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ThemeProvider attribute="class" defaultTheme="light" storageKey="dolphinscan-theme">
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/pool" element={<Pools />} />
+            <Route path="/pool/:address" element={<PoolDetails />} />
+            <Route path="/farming" element={<Farming />} />
+            <Route path="/address/:address" element={<AddressDetails />} />
+            <Route path="/transaction/:transaction" element={<TransactionDetails />} />
+            <Route path="/token/:tokenId" element={<TokenDetails />} />
+            <Route path="/trade" element={<Trade />} />
+            <Route path="/nfts" element={<NFTs />} />
+            <Route path="/game" element={<Game />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;
