@@ -191,8 +191,14 @@ export const Header = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-background">
-            <nav className="flex flex-col py-4 space-y-2">
+          <div className="md:hidden fixed inset-x-0 top-14 bottom-0 bg-background border-t border-border overflow-y-auto">
+            <nav className="flex flex-col py-4 space-y-2 pb-20">
+              {/* Theme toggle at top */}
+              <div className="px-4 py-2 flex items-center justify-between border-b border-border pb-4">
+                <span className="text-sm font-medium">Theme</span>
+                <ThemeToggle />
+              </div>
+
               <NavLink 
                 to="/trade" 
                 className="px-4 py-2 hover:bg-accent transition-colors"
@@ -282,10 +288,6 @@ export const Header = () => {
                   <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
                     Language & Currency
                   </a>
-                  <div className="py-1.5 flex items-center justify-between">
-                    <span className="text-sm">Theme</span>
-                    <ThemeToggle />
-                  </div>
                 </div>
               </div>
             </nav>
