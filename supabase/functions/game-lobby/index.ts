@@ -1,5 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +12,14 @@ const xamanApiSecret = Deno.env.get('XAMAN_API_SECRET')!;
 
 // Escrow wallet address for holding bets (should be configured)
 const ESCROW_WALLET = 'rEscrowGameBetWallet'; // TODO: Replace with actual escrow wallet
+
+// Helper function to convert string to hex
+function stringToHex(str: string): string {
+  return Array.from(new TextEncoder().encode(str))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase();
+}
 
 interface CreateLobbyRequest {
   action: 'create_lobby';
@@ -47,7 +54,7 @@ interface CancelLobbyRequest {
 
 type RequestBody = CreateLobbyRequest | JoinLobbyRequest | CheckPaymentRequest | GetLobbiesRequest | CancelLobbyRequest;
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -95,7 +102,7 @@ serve(async (req) => {
           ...(memo && {
             Memos: [{
               Memo: {
-                MemoData: Buffer.from(memo).toString('hex').toUpperCase(),
+                MemoData: stringToHex(memo),
               }
             }]
           })
