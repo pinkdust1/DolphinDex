@@ -32,7 +32,7 @@ export const GameLoading = ({ game, onComplete }: GameLoadingProps) => {
           <h1 className="text-4xl md:text-5xl font-bold text-foreground">
             {game.name}
           </h1>
-          <p className="text-lg text-muted-foreground">{game.nameRu}</p>
+          <p className="text-lg text-muted-foreground">{game.description}</p>
         </div>
         
         <div className="w-80 mx-auto space-y-3">
@@ -43,7 +43,7 @@ export const GameLoading = ({ game, onComplete }: GameLoadingProps) => {
             />
           </div>
           <p className="text-sm text-muted-foreground">
-            Загрузка данных...
+            Loading game data...
           </p>
         </div>
       </div>

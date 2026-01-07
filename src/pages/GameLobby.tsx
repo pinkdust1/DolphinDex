@@ -4,6 +4,8 @@ import { Header } from '@/components/Header';
 import { GameLoading } from '@/components/game/GameLoading';
 import { LobbyList } from '@/components/game/LobbyList';
 import { LobbyActions } from '@/components/game/LobbyActions';
+import { CreateLobbyDialog } from '@/components/game/CreateLobbyDialog';
+import { JoinLobbyDialog } from '@/components/game/JoinLobbyDialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
@@ -19,7 +21,9 @@ const GameLobby = () => {
   const [showLoading, setShowLoading] = useState(true);
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [selectedLobby, setSelectedLobby] = useState<Lobby | null>(null);
 
   const game = gameId ? GAMES[gameId as GameType] : null;
 
@@ -31,7 +35,7 @@ const GameLobby = () => {
       const data = await lobbyService.getLobbies(game.id);
       setLobbies(data);
     } catch (error) {
-      toast.error('Ошибка загрузки лобби');
+      toast.error('Failed to load lobbies');
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
@@ -48,40 +52,40 @@ const GameLobby = () => {
     setShowLoading(false);
   }, []);
 
-  const handleJoinLobby = async (lobbyId: string) => {
-    const walletAddress = localStorage.getItem('walletAddress');
+  const handleJoinLobby = (lobbyId: string) => {
+    const walletAddress = localStorage.getItem('xaman_account');
     if (!walletAddress) {
-      toast.error('Подключите кошелёк для входа в лобби');
+      toast.error('Please connect your wallet to join a lobby');
       return;
     }
 
-    try {
-      await lobbyService.joinLobby(lobbyId);
-      toast.success('Вы присоединились к лобби');
-    } catch (error) {
-      toast.error('Ошибка при входе в лобби');
+    const lobby = lobbies.find(l => l.id === lobbyId);
+    if (lobby) {
+      setSelectedLobby(lobby);
+      setShowJoinDialog(true);
     }
   };
 
-  const handleCreateLobby = async () => {
-    const walletAddress = localStorage.getItem('walletAddress');
+  const handleCreateLobby = () => {
+    const walletAddress = localStorage.getItem('xaman_account');
     if (!walletAddress) {
-      toast.error('Подключите кошелёк для создания лобби');
+      toast.error('Please connect your wallet to create a lobby');
       return;
     }
+    setShowCreateDialog(true);
+  };
 
-    if (!game) return;
+  const handleLobbyCreated = (newLobby: Lobby) => {
+    setLobbies(prev => [newLobby, ...prev]);
+    setShowCreateDialog(false);
+    toast.success('Lobby created successfully');
+  };
 
-    try {
-      setIsCreating(true);
-      const newLobby = await lobbyService.createLobby(game.id, walletAddress);
-      setLobbies(prev => [newLobby, ...prev]);
-      toast.success('Лобби создано');
-    } catch (error) {
-      toast.error('Ошибка при создании лобби');
-    } finally {
-      setIsCreating(false);
-    }
+  const handleJoinSuccess = () => {
+    setShowJoinDialog(false);
+    setSelectedLobby(null);
+    fetchLobbies();
+    toast.success('Joined lobby successfully');
   };
 
   if (!game) {
@@ -91,9 +95,9 @@ const GameLobby = () => {
         <main className="pt-20 pb-24">
           <div className="container mx-auto px-4">
             <Card className="p-12 text-center">
-              <h1 className="text-2xl font-bold mb-4">Игра не найдена</h1>
+              <h1 className="text-2xl font-bold mb-4">Game not found</h1>
               <Button onClick={() => navigate('/game')}>
-                Вернуться к списку игр
+                Back to games
               </Button>
             </Card>
           </div>
@@ -127,7 +131,7 @@ const GameLobby = () => {
                     <span className="text-3xl md:text-4xl">{game.icon}</span>
                     {game.name}
                   </h1>
-                  <p className="text-muted-foreground">{game.nameRu}</p>
+                  <p className="text-muted-foreground">{game.description}</p>
                 </div>
               </div>
               
@@ -138,7 +142,7 @@ const GameLobby = () => {
                 disabled={isRefreshing}
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Обновить</span>
+                <span className="hidden sm:inline">Refresh</span>
               </Button>
             </div>
 
@@ -153,11 +157,29 @@ const GameLobby = () => {
             <LobbyActions 
               game={game} 
               onCreateLobby={handleCreateLobby}
-              isCreating={isCreating}
+              isCreating={false}
             />
           </div>
         </div>
       </main>
+
+      {/* Create Lobby Dialog */}
+      <CreateLobbyDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        game={game}
+        onLobbyCreated={handleLobbyCreated}
+      />
+
+      {/* Join Lobby Dialog */}
+      {selectedLobby && (
+        <JoinLobbyDialog
+          open={showJoinDialog}
+          onOpenChange={setShowJoinDialog}
+          lobby={selectedLobby}
+          onJoinSuccess={handleJoinSuccess}
+        />
+      )}
     </div>
   );
 };
