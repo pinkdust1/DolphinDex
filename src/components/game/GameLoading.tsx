@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
 import { GameInfo } from '@/types/game';
 
 interface GameLoadingProps {
@@ -20,29 +19,32 @@ export const GameLoading = ({ game, onComplete }: GameLoadingProps) => {
         }
         return prev + Math.random() * 15 + 5;
       });
-    }, 200);
+    }, 150);
 
     return () => clearInterval(interval);
   }, [onComplete]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="text-center space-y-6">
-        <div className="text-6xl mb-4">{game.icon}</div>
-        <h1 className="text-3xl font-bold">{game.name}</h1>
-        <p className="text-muted-foreground">{game.nameRu}</p>
+      <div className="text-center space-y-8">
+        <div className="space-y-4">
+          <span className="text-7xl">{game.icon}</span>
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+            {game.name}
+          </h1>
+          <p className="text-lg text-muted-foreground">{game.nameRu}</p>
+        </div>
         
-        <div className="w-64 mx-auto space-y-2">
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
+        <div className="w-80 mx-auto space-y-3">
+          <div className="h-1 bg-border rounded-full overflow-hidden">
             <div 
-              className="h-full bg-primary transition-all duration-300 ease-out"
+              className="h-full bg-foreground transition-all duration-200"
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
           </div>
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Загрузка...</span>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Загрузка данных...
+          </p>
         </div>
       </div>
     </div>

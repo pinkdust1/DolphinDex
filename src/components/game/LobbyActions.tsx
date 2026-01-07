@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { GameInfo } from '@/types/game';
-import { Users, Trophy, HelpCircle } from 'lucide-react';
+import { Plus, Trophy, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface LobbyActionsProps {
@@ -21,17 +22,14 @@ export const LobbyActions = ({ game, onCreateLobby, isCreating }: LobbyActionsPr
   };
 
   return (
-    <div className="border border-border rounded-lg bg-card p-4">
+    <Card className="p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-2xl">
+        <div className="flex items-center gap-4">
+          <div className="h-14 w-14 rounded-lg bg-secondary flex items-center justify-center text-3xl">
             {game.icon}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Лобби</span>
-            </div>
+            <h3 className="font-semibold text-lg">Лобби</h3>
             <p className="text-sm text-muted-foreground">
               {game.name} • до {game.maxPlayers} игроков
             </p>
@@ -40,22 +38,20 @@ export const LobbyActions = ({ game, onCreateLobby, isCreating }: LobbyActionsPr
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
-            variant="default"
             onClick={onCreateLobby}
             disabled={isCreating}
             className="flex-1 sm:flex-none"
           >
-            <Users className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2" />
             Создать лобби
           </Button>
           
           <Button
             variant="outline"
             onClick={handleLeaderboard}
-            className="flex-1 sm:flex-none"
           >
-            <Trophy className="h-4 w-4 mr-2" />
-            Лидеры
+            <Trophy className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Лидеры</span>
           </Button>
           
           <Button
@@ -67,6 +63,6 @@ export const LobbyActions = ({ game, onCreateLobby, isCreating }: LobbyActionsPr
           </Button>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };

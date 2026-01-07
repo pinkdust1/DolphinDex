@@ -5,6 +5,7 @@ import { GameLoading } from '@/components/game/GameLoading';
 import { LobbyList } from '@/components/game/LobbyList';
 import { LobbyActions } from '@/components/game/LobbyActions';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { GameType, GAMES, Lobby } from '@/types/game';
 import { lobbyService } from '@/services/lobbyService';
@@ -88,11 +89,13 @@ const GameLobby = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="pt-20 pb-24">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-2xl font-bold mb-4">Игра не найдена</h1>
-            <Button onClick={() => navigate('/game')}>
-              Вернуться к списку игр
-            </Button>
+          <div className="container mx-auto px-4">
+            <Card className="p-12 text-center">
+              <h1 className="text-2xl font-bold mb-4">Игра не найдена</h1>
+              <Button onClick={() => navigate('/game')}>
+                Вернуться к списку игр
+              </Button>
+            </Card>
           </div>
         </main>
       </div>
@@ -109,8 +112,8 @@ const GameLobby = () => {
       <main className="pt-20 pb-24">
         <div className="container mx-auto px-4">
           <div className="space-y-6">
-            {/* Back button and title */}
-            <div className="flex items-center justify-between">
+            {/* Header section */}
+            <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <Button 
                   variant="ghost" 
@@ -120,8 +123,8 @@ const GameLobby = () => {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div>
-                  <h1 className="text-3xl font-bold flex items-center gap-3">
-                    <span className="text-4xl">{game.icon}</span>
+                  <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3">
+                    <span className="text-3xl md:text-4xl">{game.icon}</span>
                     {game.name}
                   </h1>
                   <p className="text-muted-foreground">{game.nameRu}</p>
@@ -133,10 +136,9 @@ const GameLobby = () => {
                 size="sm"
                 onClick={fetchLobbies}
                 disabled={isRefreshing}
-                className="gap-2"
               >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Обновить
+                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Обновить</span>
               </Button>
             </div>
 
