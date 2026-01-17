@@ -2,7 +2,6 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Users, TrendingUp } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface GameCardProps {
   game: {
@@ -18,8 +17,6 @@ interface GameCardProps {
 }
 
 export const GameCard = ({ game }: GameCardProps) => {
-  const navigate = useNavigate();
-
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
       case "easy":
@@ -31,10 +28,6 @@ export const GameCard = ({ game }: GameCardProps) => {
       default:
         return "bg-primary/10 text-primary border-primary/20";
     }
-  };
-
-  const handlePlay = () => {
-    navigate(`/game/${game.id}`);
   };
 
   return (
@@ -72,7 +65,7 @@ export const GameCard = ({ game }: GameCardProps) => {
       </CardContent>
 
       <CardFooter className="p-4 pt-0 flex gap-2">
-        <Button className="flex-1" variant="default" onClick={handlePlay}>
+        <Button className="flex-1" variant="default">
           Play Now
         </Button>
         <Button variant="outline" size="icon">
