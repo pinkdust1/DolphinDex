@@ -76,8 +76,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "game_history_player1_id_fkey"
+            columns: ["player1_id"]
+            isOneToOne: false
+            referencedRelation: "players_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "game_history_player2_id_fkey"
             columns: ["player2_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_history_player2_id_fkey"
+            columns: ["player2_id"]
+            isOneToOne: false
+            referencedRelation: "players_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_history_winner_id_fkey"
+            columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["id"]
@@ -86,7 +107,7 @@ export type Database = {
             foreignKeyName: "game_history_winner_id_fkey"
             columns: ["winner_id"]
             isOneToOne: false
-            referencedRelation: "players"
+            referencedRelation: "players_public"
             referencedColumns: ["id"]
           },
         ]
@@ -152,6 +173,13 @@ export type Database = {
             referencedRelation: "players"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "game_transactions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       lobbies: {
@@ -212,8 +240,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lobbies_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "players_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lobbies_opponent_id_fkey"
             columns: ["opponent_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lobbies_opponent_id_fkey"
+            columns: ["opponent_id"]
+            isOneToOne: false
+            referencedRelation: "players_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lobbies_winner_id_fkey"
+            columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["id"]
@@ -222,7 +271,7 @@ export type Database = {
             foreignKeyName: "lobbies_winner_id_fkey"
             columns: ["winner_id"]
             isOneToOne: false
-            referencedRelation: "players"
+            referencedRelation: "players_public"
             referencedColumns: ["id"]
           },
         ]
@@ -271,7 +320,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      players_public: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+          total_draws: number | null
+          total_losses: number | null
+          total_wins: number | null
+          total_xrp_lost: number | null
+          total_xrp_won: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          total_draws?: number | null
+          total_losses?: number | null
+          total_wins?: number | null
+          total_xrp_lost?: number | null
+          total_xrp_won?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          total_draws?: number | null
+          total_losses?: number | null
+          total_wins?: number | null
+          total_xrp_lost?: number | null
+          total_xrp_won?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
