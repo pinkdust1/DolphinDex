@@ -1,17 +1,40 @@
 import { X } from "lucide-react";
+import { OrderBookData } from "@/types/trading";
 
 interface OrderbookProps {
   pair: { base: string; quote: string };
+  orderBook?: OrderBookData | null;
 }
 
-export const Orderbook = ({ pair }: OrderbookProps) => {
-  const mockOrders = [
-    { price: 0.08443, volume: 261, total: 22.03563 },
-    { price: 0.08442, volume: 150, total: 12.663 },
-    { price: 0.08441, volume: 300, total: 25.323 },
-    { price: 0.08440, volume: 200, total: 16.88 },
-    { price: 0.08439, volume: 180, total: 15.1902 },
-  ];
+const formatPrice = (n: number): string => {
+  if (n < 0.001) return n.toFixed(8);
+  if (n < 1) return n.toFixed(5);
+  if (n < 100) return n.toFixed(4);
+  return n.toFixed(2);
+};
+
+const formatVolume = (n: number): string => {
+  if (n >= 1000000) return (n / 1000000).toFixed(2) + "M";
+  if (n >= 1000) return (n / 1000).toFixed(2) + "K";
+  return n.toFixed(0);
+};
+
+export const Orderbook = ({ pair, orderBook }: OrderbookProps) => {
+  const asks = orderBook?.asks ?? [];
+  const bids = orderBook?.bids ?? [];
+
+  // Calculate spread
+  const bestBid = bids[0]?.price ?? 0;
+  const bestAsk = asks[asks.length - 1]?.price ?? 0;
+  const spread = bestAsk > 0 && bestBid > 0 ? (bestAsk - bestBid).toFixed(5) : "0.00001";
+
+  // Get max volume for bar sizing
+  const allVolumes = [...asks, ...bids].map(o => o.amount);
+  const maxVolume = Math.max(...allVolumes, 1);
+
+  // Show top 5 asks (reversed for display) and top 5 bids
+  const displayAsks = asks.slice(0, 5).reverse();
+  const displayBids = bids.slice(0, 5);
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
@@ -34,42 +57,58 @@ export const Orderbook = ({ pair }: OrderbookProps) => {
 
       {/* Order Rows */}
       <div className="max-h-[400px] overflow-y-auto">
-        {mockOrders.map((order, idx) => (
-          <div
-            key={idx}
-            className="relative grid grid-cols-3 gap-2 px-3 py-1.5 text-xs hover:bg-accent/50 cursor-pointer"
-          >
-            <div className="absolute inset-0 bg-green-500/10" style={{ width: '30%' }} />
-            <div className="relative text-green-500 font-medium">
-              {order.price.toFixed(5)}
+        {/* Asks (Sells) - Red */}
+        {displayAsks.map((order, idx) => {
+          const barWidth = (order.amount / maxVolume) * 100;
+          const total = order.price * order.amount;
+          return (
+            <div
+              key={`ask-${idx}`}
+              className="relative grid grid-cols-3 gap-2 px-3 py-1.5 text-xs hover:bg-accent/50 cursor-pointer"
+            >
+              <div 
+                className="absolute inset-0 bg-green-500/10" 
+                style={{ width: `${barWidth}%` }} 
+              />
+              <div className="relative text-green-500 font-medium">
+                {formatPrice(order.price)}
+              </div>
+              <div className="relative text-right">{formatVolume(order.amount)}</div>
+              <div className="relative text-right text-muted-foreground">
+                {formatPrice(total)}
+              </div>
             </div>
-            <div className="relative text-right">{order.volume}</div>
-            <div className="relative text-right text-muted-foreground">
-              {order.total.toFixed(5)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
         
         {/* Spread */}
         <div className="px-3 py-2 text-center text-xs font-medium border-y border-border bg-muted/30">
-          Spread: 0.00001
+          Spread: {spread}
         </div>
 
-        {mockOrders.reverse().map((order, idx) => (
-          <div
-            key={idx}
-            className="relative grid grid-cols-3 gap-2 px-3 py-1.5 text-xs hover:bg-accent/50 cursor-pointer"
-          >
-            <div className="absolute inset-0 bg-red-500/10" style={{ width: '25%' }} />
-            <div className="relative text-red-500 font-medium">
-              {(order.price - 0.00002).toFixed(5)}
+        {/* Bids (Buys) - Green shows as red on sell side */}
+        {displayBids.map((order, idx) => {
+          const barWidth = (order.amount / maxVolume) * 100;
+          const total = order.price * order.amount;
+          return (
+            <div
+              key={`bid-${idx}`}
+              className="relative grid grid-cols-3 gap-2 px-3 py-1.5 text-xs hover:bg-accent/50 cursor-pointer"
+            >
+              <div 
+                className="absolute inset-0 bg-red-500/10" 
+                style={{ width: `${barWidth}%` }} 
+              />
+              <div className="relative text-red-500 font-medium">
+                {formatPrice(order.price)}
+              </div>
+              <div className="relative text-right">{formatVolume(order.amount)}</div>
+              <div className="relative text-right text-muted-foreground">
+                {formatPrice(total)}
+              </div>
             </div>
-            <div className="relative text-right">{order.volume}</div>
-            <div className="relative text-right text-muted-foreground">
-              {order.total.toFixed(5)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
