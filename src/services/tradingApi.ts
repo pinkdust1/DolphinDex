@@ -162,14 +162,24 @@ export const tradingApi = {
       
       console.log('OrderBook API response:', rawData);
       
-      // Handle different response formats
+      // Handle different response formats - API returns {success, data: {asks, bids}}
       if (rawData && typeof rawData === 'object') {
-        const data = rawData as Record<string, unknown>;
-        return {
-          asks: Array.isArray(data.asks) ? data.asks : [],
-          bids: Array.isArray(data.bids) ? data.bids : [],
-          spread: typeof data.spread === 'number' ? data.spread : 0,
-        };
+        const response = rawData as Record<string, unknown>;
+        
+        // Check if data is nested under 'data' property
+        const orderData = (response.data && typeof response.data === 'object') 
+          ? response.data as Record<string, unknown>
+          : response;
+        
+        const asks = Array.isArray(orderData.asks) ? orderData.asks : [];
+        const bids = Array.isArray(orderData.bids) ? orderData.bids : [];
+        
+        // Calculate spread from best bid/ask
+        const bestBid = bids[0]?.price ?? 0;
+        const bestAsk = asks[0]?.price ?? 0;
+        const spread = bestAsk > 0 && bestBid > 0 ? Math.abs(bestAsk - bestBid) : 0;
+        
+        return { asks, bids, spread };
       }
       
       return { asks: [], bids: [], spread: 0 };
