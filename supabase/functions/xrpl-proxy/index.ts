@@ -8,6 +8,33 @@ const corsHeaders = {
 
 const RPC_URL = "https://xrplcluster.com";
 
+// Whitelist of allowed XRPL RPC methods for this application
+const ALLOWED_METHODS = [
+  'account_info',
+  'account_lines',
+  'account_offers',
+  'account_tx',
+  'account_nfts',
+  'book_offers',
+  'ledger',
+  'ledger_current',
+  'ledger_closed',
+  'server_info',
+  'server_state',
+  'tx',
+  'submit',
+  'fee',
+  'gateway_balances',
+  'nft_info',
+  'nft_history',
+  'nft_sell_offers',
+  'nft_buy_offers',
+];
+
+// Maximum limits for pagination parameters
+const MAX_LIMIT = 100;
+const MAX_LEDGER_RANGE = 1000;
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -15,13 +42,81 @@ serve(async (req) => {
   }
 
   try {
-    const { method, params } = await req.json();
-
-    if (!method) {
+    // Only allow POST method
+    if (req.method !== "POST") {
       return new Response(
-        JSON.stringify({ error: "Method is required" }),
+        JSON.stringify({ error: "Method not allowed" }),
+        { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    const { method, params } = body;
+
+    if (!method || typeof method !== 'string') {
+      return new Response(
+        JSON.stringify({ error: "Method is required and must be a string" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate method is in whitelist
+    if (!ALLOWED_METHODS.includes(method)) {
+      console.warn(`Blocked RPC method: ${method}`);
+      return new Response(
+        JSON.stringify({ error: "Method not allowed" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Sanitize params - ensure it's an array or convert object to array format
+    let sanitizedParams = params;
+    if (params !== undefined) {
+      if (!Array.isArray(params)) {
+        if (typeof params === 'object' && params !== null) {
+          sanitizedParams = [params];
+        } else {
+          return new Response(
+            JSON.stringify({ error: "Params must be an array or object" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+      
+      // Enforce limits on pagination parameters
+      sanitizedParams = sanitizedParams.map((param: Record<string, unknown>) => {
+        if (typeof param === 'object' && param !== null) {
+          const sanitized = { ...param };
+          
+          // Limit 'limit' parameter
+          if (typeof sanitized.limit === 'number' && sanitized.limit > MAX_LIMIT) {
+            sanitized.limit = MAX_LIMIT;
+          }
+          
+          // Limit ledger range for account_tx
+          if (method === 'account_tx') {
+            if (typeof sanitized.ledger_index_min === 'number' && 
+                typeof sanitized.ledger_index_max === 'number') {
+              const range = sanitized.ledger_index_max - sanitized.ledger_index_min;
+              if (range > MAX_LEDGER_RANGE) {
+                sanitized.ledger_index_max = sanitized.ledger_index_min + MAX_LEDGER_RANGE;
+              }
+            }
+          }
+          
+          return sanitized;
+        }
+        return param;
+      });
     }
 
     console.log(`XRPL RPC request: ${method}`);
@@ -29,7 +124,7 @@ serve(async (req) => {
     const response = await fetch(RPC_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ method, params }),
+      body: JSON.stringify({ method, params: sanitizedParams }),
     });
 
     if (!response.ok) {
@@ -43,9 +138,9 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("XRPL proxy error:", error);
-    const message = error instanceof Error ? error.message : "Internal server error";
+    // Return generic error message to avoid leaking internal details
     return new Response(
-      JSON.stringify({ error: message }),
+      JSON.stringify({ error: "Request failed" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

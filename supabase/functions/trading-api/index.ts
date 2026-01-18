@@ -8,10 +8,35 @@ const corsHeaders = {
 // Use the user's server as specified in the requirements
 const EXTERNAL_API_BASE = 'http://46.8.236.250:8086/api';
 
+// Whitelist of allowed endpoints
+const ALLOWED_ENDPOINTS = [
+  'ohlc',
+  'orderbook',
+  'trades',
+  'ticker',
+  'pairs',
+  'markets',
+  'stats',
+];
+
+// Maximum allowed limit parameter
+const MAX_LIMIT = 200;
+
+// Validate endpoint pattern - only allow alphanumeric and underscores
+const ENDPOINT_PATTERN = /^[a-zA-Z0-9_-]+$/;
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Only allow GET method
+  if (req.method !== 'GET') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
@@ -25,14 +50,43 @@ serve(async (req) => {
       );
     }
 
+    // Validate endpoint format
+    if (!ENDPOINT_PATTERN.test(endpoint)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid endpoint format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if endpoint is in whitelist
+    if (!ALLOWED_ENDPOINTS.includes(endpoint.toLowerCase())) {
+      console.warn(`Blocked endpoint: ${endpoint}`);
+      return new Response(
+        JSON.stringify({ error: 'Endpoint not allowed' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Build the external API URL
-    let externalUrl = `${EXTERNAL_API_BASE}/${endpoint}`;
+    let externalUrl = `${EXTERNAL_API_BASE}/${encodeURIComponent(endpoint)}`;
     
-    // Forward query parameters (except 'endpoint')
+    // Forward query parameters (except 'endpoint') with validation
     const params = new URLSearchParams();
     url.searchParams.forEach((value, key) => {
       if (key !== 'endpoint') {
-        params.append(key, value);
+        // Sanitize and validate parameters
+        const sanitizedValue = value.trim();
+        
+        // Enforce limit parameter
+        if (key === 'limit') {
+          const limitNum = parseInt(sanitizedValue, 10);
+          if (!isNaN(limitNum)) {
+            params.append(key, String(Math.min(limitNum, MAX_LIMIT)));
+          }
+        } else if (sanitizedValue.length > 0 && sanitizedValue.length <= 500) {
+          // Only allow reasonable parameter lengths
+          params.append(key, sanitizedValue);
+        }
       }
     });
     
@@ -51,9 +105,9 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      console.error(`External API error: ${response.status} ${response.statusText}`);
+      console.error(`External API error: ${response.status}`);
       return new Response(
-        JSON.stringify({ error: `External API error: ${response.statusText}` }),
+        JSON.stringify({ error: 'External API error' }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -67,10 +121,10 @@ serve(async (req) => {
     );
 
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    console.error('Trading API proxy error:', errorMessage);
+    console.error('Trading API proxy error:', error instanceof Error ? error.message : 'Unknown error');
+    // Return generic error to avoid leaking internal details
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: 'Request failed' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
