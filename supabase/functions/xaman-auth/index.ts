@@ -5,19 +5,62 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Allowed actions for this endpoint
+const ALLOWED_ACTIONS = ['create', 'check'];
+
+// UUID format validation
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Only allow POST method
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
-    const body = await req.json();
-    const { action } = body;
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { action, uuid } = body;
+
+    // Validate action
+    if (!action || typeof action !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Action is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!ALLOWED_ACTIONS.includes(action)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid action' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const apiKey = Deno.env.get('XAMAN_API_KEY');
     const apiSecret = Deno.env.get('XAMAN_API_SECRET');
 
     if (!apiKey || !apiSecret) {
-      throw new Error('XAMAN API credentials not configured');
+      console.error('XAMAN API credentials not configured');
+      return new Response(
+        JSON.stringify({ error: 'Service configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     if (action === 'create') {
@@ -39,9 +82,11 @@ serve(async (req) => {
       });
 
       if (!response.ok) {
-        const error = await response.text();
-        console.error('XAMAN API error:', error);
-        throw new Error(`Failed to create payload: ${response.status}`);
+        console.error('XAMAN API error:', response.status);
+        return new Response(
+          JSON.stringify({ error: 'Failed to create authentication request' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       const data = await response.json();
@@ -58,13 +103,22 @@ serve(async (req) => {
     }
 
     if (action === 'check') {
-      const { uuid } = body;
-      
-      if (!uuid) {
-        throw new Error('UUID is required');
+      // Validate UUID format
+      if (!uuid || typeof uuid !== 'string') {
+        return new Response(
+          JSON.stringify({ error: 'UUID is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
-      const response = await fetch(`https://xumm.app/api/v1/platform/payload/${uuid}`, {
+      if (!UUID_PATTERN.test(uuid)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid UUID format' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const response = await fetch(`https://xumm.app/api/v1/platform/payload/${encodeURIComponent(uuid)}`, {
         headers: {
           'X-API-Key': apiKey,
           'X-API-Secret': apiSecret,
@@ -72,36 +126,46 @@ serve(async (req) => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to check payload status: ${response.status}`);
+        console.error('XAMAN API check error:', response.status);
+        return new Response(
+          JSON.stringify({ error: 'Failed to check authentication status' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       const data = await response.json();
       console.log('Payload status:', data.meta.signed, 'for', uuid);
 
-      // Return all available data from Xaman
+      // Return only necessary data, exclude internal metadata
       return new Response(
         JSON.stringify({
           signed: data.meta.signed,
           account: data.response?.account || null,
-          // Full Xaman response data
           xamanData: {
-            meta: data.meta,
-            application: data.application,
-            payload: data.payload,
-            response: data.response,
-            custom_meta: data.custom_meta,
+            meta: {
+              signed: data.meta.signed,
+              expired: data.meta.expired,
+              resolved: data.meta.resolved,
+            },
+            response: data.response ? {
+              account: data.response.account,
+              signer: data.response.signer,
+            } : null,
           }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    throw new Error('Invalid action');
+    return new Response(
+      JSON.stringify({ error: 'Invalid action' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
     console.error('Error in xaman-auth function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    // Return generic error to avoid leaking internal details
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: 'Authentication service error' }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
