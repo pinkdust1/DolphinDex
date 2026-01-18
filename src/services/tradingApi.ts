@@ -127,14 +127,11 @@ export const tradingApi = {
         tokens.push(buildToken(item));
       }
 
-      return tokens.length > 0 ? tokens : [
-        { symbol: 'RLUSD', name: 'Ripple USD', price: 0.4691, change24h: -1.2, volume24h: 2600000, icon: '💵', base: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De_524C555344000000000000000000000000000000' },
-      ];
+      return tokens.length > 0 ? tokens : generateMockTokens();
     } catch (error) {
       console.error('Failed to fetch tokens:', error);
-      return [
-        { symbol: 'RLUSD', name: 'Ripple USD', price: 0.4691, change24h: -1.2, volume24h: 2600000, icon: '💵', base: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De_524C555344000000000000000000000000000000' },
-      ];
+      // Return mock tokens when API is unavailable
+      return generateMockTokens();
     }
   },
 
@@ -279,4 +276,42 @@ function generateMockTrades(limit: number): Trade[] {
   }
   
   return trades;
+}
+
+function generateMockTokens(): Token[] {
+  return [
+    { 
+      symbol: 'RLUSD', 
+      name: 'Ripple USD', 
+      price: 0.4691, 
+      change24h: -1.2, 
+      volume24h: 2600000, 
+      high24h: 0.4750,
+      low24h: 0.4620,
+      icon: '💵', 
+      base: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De_524C555344000000000000000000000000000000' 
+    },
+    { 
+      symbol: 'XDX', 
+      name: 'XDX Token', 
+      price: 0.0234, 
+      change24h: 5.7, 
+      volume24h: 1850000, 
+      high24h: 0.0245,
+      low24h: 0.0218,
+      icon: '🔷', 
+      base: 'mock_xdx_issuer' 
+    },
+    { 
+      symbol: 'SOLO', 
+      name: 'Sologenic', 
+      price: 0.1567, 
+      change24h: -0.8, 
+      volume24h: 980000, 
+      high24h: 0.1610,
+      low24h: 0.1520,
+      icon: '🌟', 
+      base: 'mock_solo_issuer' 
+    },
+  ];
 }
