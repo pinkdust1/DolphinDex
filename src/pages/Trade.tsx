@@ -64,6 +64,17 @@ const Trade = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto p-4 pt-20 flex items-center justify-center">
+          <div className="text-muted-foreground">Loading trading data...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
