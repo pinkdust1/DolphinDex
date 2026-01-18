@@ -24,6 +24,11 @@ const formatSize = (n: number) => {
 };
 
 export const TradingOrderBook = ({ data, isLoading }: TradingOrderBookProps) => {
+  // Safely extract arrays with fallbacks
+  const asks = data?.asks ?? [];
+  const bids = data?.bids ?? [];
+  const spread = data?.spread ?? 0;
+
   if (isLoading || !data) {
     return (
       <div className="bg-card border border-border rounded-lg overflow-hidden h-full min-h-[400px] flex items-center justify-center">
@@ -33,13 +38,13 @@ export const TradingOrderBook = ({ data, isLoading }: TradingOrderBookProps) => 
   }
 
   const maxAmount = Math.max(
-    ...data.asks.map(a => a.amount),
-    ...data.bids.map(b => b.amount),
+    ...asks.map(a => a.amount),
+    ...bids.map(b => b.amount),
     1
   );
 
-  const midPrice = data.asks.length > 0 && data.bids.length > 0
-    ? (data.asks[data.asks.length - 1].price + data.bids[0].price) / 2
+  const midPrice = asks.length > 0 && bids.length > 0
+    ? (asks[asks.length - 1].price + bids[0].price) / 2
     : 0;
 
   return (
@@ -60,7 +65,7 @@ export const TradingOrderBook = ({ data, isLoading }: TradingOrderBookProps) => 
       <div className="flex-1 overflow-y-auto">
         {/* ASKS (Sells) - Reversed */}
         <div className="flex flex-col-reverse">
-          {data.asks.slice(-12).map((ask, i) => (
+          {asks.slice(-12).map((ask, i) => (
             <div
               key={`ask-${i}`}
               className="relative group py-1 px-3 flex items-center justify-between text-xs hover:bg-accent/50 cursor-pointer transition-colors"
@@ -86,13 +91,13 @@ export const TradingOrderBook = ({ data, isLoading }: TradingOrderBookProps) => 
           </div>
           <div className="text-xs text-muted-foreground flex items-center gap-1">
             <span>Spread:</span>
-            <span className="font-mono">{formatPrice(data.spread)}</span>
+            <span className="font-mono">{formatPrice(spread)}</span>
           </div>
         </div>
 
         {/* BIDS (Buys) */}
         <div>
-          {data.bids.slice(0, 12).map((bid, i) => (
+          {bids.slice(0, 12).map((bid, i) => (
             <div
               key={`bid-${i}`}
               className="relative group py-1 px-3 flex items-center justify-between text-xs hover:bg-accent/50 cursor-pointer transition-colors"

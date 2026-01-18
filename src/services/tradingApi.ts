@@ -69,7 +69,23 @@ async function fetchFromProxy<T>(endpoint: string, params: Record<string, string
 export const tradingApi = {
   async getTokens(interval: TimeInterval = '1h'): Promise<Token[]> {
     try {
-      const data = await fetchFromProxy<Array<{
+      const rawData = await fetchFromProxy<unknown>('tokens', { interval });
+      
+      // Handle different API response formats
+      const data = Array.isArray(rawData) ? rawData : 
+                   (rawData && typeof rawData === 'object' && 'data' in rawData && Array.isArray((rawData as {data: unknown[]}).data)) 
+                   ? (rawData as {data: unknown[]}).data : [];
+      
+      console.log('Tokens API response:', { raw: rawData, parsed: data.length });
+
+      if (!Array.isArray(data) || data.length === 0) {
+        console.warn('No tokens data received, using fallback');
+        return [
+          { symbol: 'RLUSD', name: 'Ripple USD', price: 0.4691, change24h: -1.2, volume24h: 2600000, icon: '💵', base: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De_524C555344000000000000000000000000000000' },
+        ];
+      }
+
+      const filtered = (data as Array<{
         base: string;
         counter: string;
         price: number;
@@ -78,10 +94,8 @@ export const tradingApi = {
         high24h: number;
         low24h: number;
         exchanges: number;
-      }>>('tokens', { interval });
-
-      const filtered = data
-        .filter(item => item.counter === 'XRP' && item.price > 0 && item.volume24h > 0)
+      }>)
+        .filter(item => item && item.counter === 'XRP' && item.price > 0 && item.volume24h > 0)
         .sort((a, b) => b.volume24h - a.volume24h);
 
       const rlusdRaw = filtered.find(item => 
@@ -113,7 +127,9 @@ export const tradingApi = {
         tokens.push(buildToken(item));
       }
 
-      return tokens;
+      return tokens.length > 0 ? tokens : [
+        { symbol: 'RLUSD', name: 'Ripple USD', price: 0.4691, change24h: -1.2, volume24h: 2600000, icon: '💵', base: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De_524C555344000000000000000000000000000000' },
+      ];
     } catch (error) {
       console.error('Failed to fetch tokens:', error);
       return [
@@ -124,12 +140,18 @@ export const tradingApi = {
 
   async getOHLC(symbol: string, interval: TimeInterval, limit: number = 100): Promise<OHLCData[]> {
     try {
-      const data = await fetchFromProxy<OHLCData[]>('ohlc', { 
+      const rawData = await fetchFromProxy<unknown>('ohlc', { 
         symbol, 
         interval, 
         limit: limit.toString() 
       });
-      return data;
+      
+      const data = Array.isArray(rawData) ? rawData : 
+                   (rawData && typeof rawData === 'object' && 'data' in rawData && Array.isArray((rawData as {data: unknown[]}).data)) 
+                   ? (rawData as {data: unknown[]}).data : [];
+      
+      console.log('OHLC API response:', { raw: typeof rawData, length: data.length });
+      return data as OHLCData[];
     } catch (error) {
       console.error('Failed to fetch OHLC:', error);
       return [];
@@ -138,8 +160,21 @@ export const tradingApi = {
 
   async getOrderBook(symbol: string): Promise<OrderBookData> {
     try {
-      const data = await fetchFromProxy<OrderBookData>('orderbook', { symbol });
-      return data;
+      const rawData = await fetchFromProxy<unknown>('orderbook', { symbol });
+      
+      console.log('OrderBook API response:', rawData);
+      
+      // Handle different response formats
+      if (rawData && typeof rawData === 'object') {
+        const data = rawData as Record<string, unknown>;
+        return {
+          asks: Array.isArray(data.asks) ? data.asks : [],
+          bids: Array.isArray(data.bids) ? data.bids : [],
+          spread: typeof data.spread === 'number' ? data.spread : 0,
+        };
+      }
+      
+      return { asks: [], bids: [], spread: 0 };
     } catch (error) {
       console.error('Failed to fetch orderbook:', error);
       return { asks: [], bids: [], spread: 0 };
@@ -148,21 +183,23 @@ export const tradingApi = {
 
   async getTrades(symbol: string, limit: number = 50): Promise<Trade[]> {
     try {
-      const exchanges = await fetchFromProxy<Array<{
-        base_amount: number;
-        counter_amount: number;
-        rate: number;
-        executed_time: string;
-        buyer: string;
-        seller: string;
-        tx_hash: string;
-      }>>('exchanges', { symbol, limit: limit.toString() });
+      const rawData = await fetchFromProxy<unknown>('exchanges', { symbol, limit: limit.toString() });
+      
+      const exchanges = Array.isArray(rawData) ? rawData : 
+                        (rawData && typeof rawData === 'object' && 'data' in rawData && Array.isArray((rawData as {data: unknown[]}).data)) 
+                        ? (rawData as {data: unknown[]}).data : [];
+      
+      console.log('Trades API response:', { raw: typeof rawData, length: exchanges.length });
 
-      return exchanges.map((ex, idx) => ({
-        id: ex.tx_hash || `${idx}`,
-        price: ex.rate,
-        amount: ex.base_amount,
-        time: new Date(ex.executed_time).getTime(),
+      if (!Array.isArray(exchanges)) {
+        return [];
+      }
+
+      return exchanges.map((ex: Record<string, unknown>, idx: number) => ({
+        id: String(ex.tx_hash || idx),
+        price: Number(ex.rate) || 0,
+        amount: Number(ex.base_amount) || 0,
+        time: ex.executed_time ? new Date(String(ex.executed_time)).getTime() : Date.now(),
         side: (idx % 2 === 0 ? 'buy' : 'sell') as 'buy' | 'sell'
       })).sort((a, b) => b.time - a.time);
     } catch (error) {
