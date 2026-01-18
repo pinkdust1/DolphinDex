@@ -16,7 +16,7 @@ const Trade = () => {
   const [interval, setInterval] = useState<TimeInterval>("1h");
   const [ohlc, setOhlc] = useState<OHLCData[]>([]);
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
-  const [trades, setTrades] = useState<Trade[]>([]);
+  const [trades, setTrades] = useState<TradeType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load tokens on mount
