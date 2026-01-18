@@ -46,12 +46,7 @@ const extractCurrencyCode = (base: string): string => {
 async function fetchFromProxy<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
   const queryParams = new URLSearchParams({ endpoint, ...params });
   
-  const { data, error } = await supabase.functions.invoke('trading-api', {
-    body: null,
-    method: 'GET',
-  });
-
-  // Use direct fetch since invoke doesn't support query params well
+  // Direct fetch to edge function with query params
   const response = await fetch(
     `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/trading-api?${queryParams.toString()}`,
     {
@@ -63,7 +58,8 @@ async function fetchFromProxy<T>(endpoint: string, params: Record<string, string
   );
 
   if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `API error: ${response.statusText}`);
   }
 
   const result = await response.json();

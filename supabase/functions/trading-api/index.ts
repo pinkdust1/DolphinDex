@@ -5,7 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const EXTERNAL_API_BASE = 'https://xrpldata.inftf.org/v1';
+// Use the user's server as specified in the requirements
+const EXTERNAL_API_BASE = 'http://46.8.236.250:8086/api';
 
 serve(async (req) => {
   // Handle CORS preflight
