@@ -38,14 +38,13 @@ const GameLobby = () => {
 
   // Load wallet address from localStorage
   useEffect(() => {
-    const storedAddress = localStorage.getItem("connectedWalletAddress");
+    const storedAddress = localStorage.getItem("xaman_account");
     setWalletAddress(storedAddress);
 
-    // Listen for wallet changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "connectedWalletAddress") {
-        setWalletAddress(e.newValue);
-      }
+    // Listen for wallet changes (works for same-tab and cross-tab)
+    const handleStorageChange = () => {
+      const wallet = localStorage.getItem("xaman_account");
+      setWalletAddress(wallet);
     };
 
     window.addEventListener("storage", handleStorageChange);
