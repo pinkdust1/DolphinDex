@@ -125,14 +125,14 @@ const GamePlay = () => {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">White {playerColor === "white" && "(You)"}</p>
-                    <code className="text-sm">{formatWalletAddress(lobbyData?.creator_wallet || null)}</code>
+                    <code className="text-sm">{formatWalletAddress(lobbyData?.player1_wallet || null)}</code>
                   </div>
                 </div>
                 <span className="text-muted-foreground font-bold">VS</span>
                 <div className="flex items-center gap-3">
                   <div>
                     <p className="text-xs text-muted-foreground text-right">Black {playerColor === "black" && "(You)"}</p>
-                    <code className="text-sm">{formatWalletAddress(lobbyData?.opponent_wallet || null)}</code>
+                    <code className="text-sm">{formatWalletAddress(lobbyData?.player2_wallet || null)}</code>
                   </div>
                   <div className={`w-8 h-8 rounded-full bg-gray-800 border-2 flex items-center justify-center ${playerColor === "black" ? "border-primary ring-2 ring-primary/20" : "border-gray-600"}`}>
                     <Users className="h-4 w-4 text-gray-300" />
