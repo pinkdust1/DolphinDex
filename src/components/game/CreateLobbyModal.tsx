@@ -34,7 +34,7 @@ export const CreateLobbyModal = ({
 
   const handleCreate = async () => {
     if (!walletAddress) {
-      setErrorMessage("Кошелёк не подключён");
+      setErrorMessage("Wallet not connected");
       setState("error");
       return;
     }
@@ -42,7 +42,7 @@ export const CreateLobbyModal = ({
     const amount = parseFloat(betAmount) || 0;
     
     if (amount < 0 || amount > 100) {
-      setErrorMessage("Ставка должна быть от 0 до 100 XRP");
+      setErrorMessage("Bet must be between 0 and 100 XRP");
       setState("error");
       return;
     }
@@ -54,7 +54,7 @@ export const CreateLobbyModal = ({
       const result = await createLobby(walletAddress, amount);
       
       if (!result.success) {
-        setErrorMessage(result.error || "Не удалось создать лобби");
+        setErrorMessage(result.error || "Failed to create lobby");
         setState("error");
         return;
       }
@@ -62,7 +62,7 @@ export const CreateLobbyModal = ({
       setCreatedLobby(result.data || null);
       setState("created");
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : "Произошла ошибка");
+      setErrorMessage(err instanceof Error ? err.message : "An error occurred");
       setState("error");
     }
   };
@@ -97,19 +97,19 @@ export const CreateLobbyModal = ({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {state === "form" && "Создать лобби"}
-            {state === "creating" && "Создание лобби..."}
-            {state === "created" && "Лобби создано"}
-            {state === "waiting" && "Ожидание игрока"}
-            {state === "error" && "Ошибка"}
+        <DialogTitle>
+            {state === "form" && "Create Lobby"}
+            {state === "creating" && "Creating lobby..."}
+            {state === "created" && "Lobby Created"}
+            {state === "waiting" && "Waiting for Player"}
+            {state === "error" && "Error"}
           </DialogTitle>
           <DialogDescription>
-            {state === "form" && "Установите ставку для игры (0 = без ставки)"}
-            {state === "creating" && "Пожалуйста, подождите..."}
-            {state === "created" && "Ваше лобби успешно создано!"}
-            {state === "waiting" && "Ожидание подключения другого игрока..."}
-            {state === "error" && "Произошла ошибка при создании лобби"}
+            {state === "form" && "Set the bet amount for the game (0 = no bet)"}
+            {state === "creating" && "Please wait..."}
+            {state === "created" && "Your lobby has been created successfully!"}
+            {state === "waiting" && "Waiting for another player to join..."}
+            {state === "error" && "An error occurred while creating the lobby"}
           </DialogDescription>
         </DialogHeader>
 
@@ -117,7 +117,7 @@ export const CreateLobbyModal = ({
           {state === "form" && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="bet">Ставка (XRP)</Label>
+                <Label htmlFor="bet">Bet Amount (XRP)</Label>
                 <Input
                   id="bet"
                   type="number"
@@ -129,14 +129,14 @@ export const CreateLobbyModal = ({
                   placeholder="0"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Максимум: 100 XRP. Введите 0 для игры без ставки.
+                  Maximum: 100 XRP. Enter 0 to play without a bet.
                 </p>
               </div>
 
               {!walletAddress && (
                 <div className="flex items-center gap-2 text-amber-500 text-sm">
                   <AlertCircle className="h-4 w-4" />
-                  <span>Подключите кошелёк для создания лобби</span>
+                  <span>Connect wallet to create a lobby</span>
                 </div>
               )}
 
@@ -145,7 +145,7 @@ export const CreateLobbyModal = ({
                 disabled={!walletAddress}
                 className="w-full"
               >
-                Создать
+                Create
               </Button>
             </div>
           )}
@@ -153,14 +153,14 @@ export const CreateLobbyModal = ({
           {state === "creating" && (
             <div className="flex flex-col items-center justify-center py-8">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="mt-4 text-muted-foreground">Создание лобби...</p>
+              <p className="mt-4 text-muted-foreground">Creating lobby...</p>
             </div>
           )}
 
           {state === "created" && (
             <div className="flex flex-col items-center justify-center py-4">
               <CheckCircle className="h-16 w-16 text-green-500" />
-              <p className="mt-4 text-lg font-semibold">Лобби создано!</p>
+              <p className="mt-4 text-lg font-semibold">Lobby Created!</p>
               {createdLobby && (
                 <p className="text-muted-foreground">
                   ID: #{createdLobby.id_lobby}
@@ -175,12 +175,12 @@ export const CreateLobbyModal = ({
           {state === "waiting" && (
             <div className="flex flex-col items-center justify-center py-8">
               <Clock className="h-12 w-12 text-primary animate-pulse" />
-              <p className="mt-4 text-lg font-medium">Ожидание другого игрока...</p>
+              <p className="mt-4 text-lg font-medium">Waiting for another player...</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Другой игрок может присоединиться в любой момент
+                Another player can join at any time
               </p>
               <Button variant="outline" onClick={handleClose} className="mt-6">
-                Закрыть
+                Close
               </Button>
             </div>
           )}
@@ -188,12 +188,12 @@ export const CreateLobbyModal = ({
           {state === "error" && (
             <div className="flex flex-col items-center justify-center py-4">
               <AlertCircle className="h-16 w-16 text-destructive" />
-              <p className="mt-4 text-lg font-semibold text-destructive">Ошибка</p>
+              <p className="mt-4 text-lg font-semibold text-destructive">Error</p>
               <p className="text-muted-foreground text-center mt-2">
                 {errorMessage}
               </p>
               <Button onClick={() => setState("form")} className="mt-6 w-full">
-                Попробовать снова
+                Try Again
               </Button>
             </div>
           )}
