@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 interface GameControlsProps {
   gameState: GameState;
   onReset: () => void;
-  onSurrender: (player: Player) => void;
+  onSurrender: () => void;
   playerColor?: Player;
 }
 
@@ -66,7 +66,7 @@ export const GameControls = ({ gameState, onReset, onSurrender, playerColor = "w
         {!gameOver && (
           <Button
             variant="destructive"
-            onClick={() => onSurrender(playerColor)}
+            onClick={onSurrender}
             className="gap-2"
           >
             <Flag className="h-4 w-4" />
