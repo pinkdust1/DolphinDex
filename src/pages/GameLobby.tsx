@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { LobbyLoader } from "@/components/game/LobbyLoader";
 import { LobbyList } from "@/components/game/LobbyList";
+import { CreateLobbyModal } from "@/components/game/CreateLobbyModal";
+import { JoinLobbyModal } from "@/components/game/JoinLobbyModal";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw, Plus } from "lucide-react";
 import { fetchLobbies, LobbyData } from "@/services/lobbyApi";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,10 +25,34 @@ const GameLobby = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Modal states
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [joinModalOpen, setJoinModalOpen] = useState(false);
+  const [selectedLobby, setSelectedLobby] = useState<LobbyData | null>(null);
+  
+  // Wallet state
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   const gameName = gameId ? gameNames[gameId] || gameId : "Game";
 
-  const loadLobbies = async (showRefreshIndicator = false) => {
+  // Load wallet address from localStorage
+  useEffect(() => {
+    const storedAddress = localStorage.getItem("connectedWalletAddress");
+    setWalletAddress(storedAddress);
+
+    // Listen for wallet changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "connectedWalletAddress") {
+        setWalletAddress(e.newValue);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  const loadLobbies = useCallback(async (showRefreshIndicator = false) => {
     try {
       if (showRefreshIndicator) {
         setIsRefreshing(true);
@@ -45,22 +71,34 @@ const GameLobby = () => {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadLobbies();
-  }, [gameId]);
+  }, [loadLobbies, gameId]);
 
   const handleJoinLobby = (lobby: LobbyData) => {
-    // Future: Implement lobby join logic
-    toast({
-      title: "Joining lobby",
-      description: `Connecting to lobby #${lobby.id_lobby}...`,
-    });
-    console.log("Joining lobby:", lobby);
+    setSelectedLobby(lobby);
+    setJoinModalOpen(true);
   };
 
   const handleRefresh = () => {
+    loadLobbies(true);
+  };
+
+  const handleLobbyCreated = (lobby: LobbyData) => {
+    toast({
+      title: "Лобби создано",
+      description: `Лобби #${lobby.id_lobby} успешно создано`,
+    });
+    loadLobbies(true);
+  };
+
+  const handleJoined = () => {
+    toast({
+      title: "Подключение",
+      description: "Вы успешно подключились к лобби!",
+    });
     loadLobbies(true);
   };
 
@@ -85,20 +123,33 @@ const GameLobby = () => {
                     {gameName} Lobbies
                   </h1>
                   <p className="text-muted-foreground mt-1">
-                    Select a lobby to join the game
+                    {walletAddress 
+                      ? "Выберите лобби или создайте новое"
+                      : "Подключите кошелёк для игры"}
                   </p>
                 </div>
               </div>
               
-              <Button 
-                variant="outline" 
-                onClick={handleRefresh}
-                disabled={isLoading || isRefreshing}
-                className="gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                Refresh
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={handleRefresh}
+                  disabled={isLoading || isRefreshing}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                  Обновить
+                </Button>
+                
+                <Button 
+                  onClick={() => setCreateModalOpen(true)}
+                  disabled={!walletAddress}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Создать лобби
+                </Button>
+              </div>
             </div>
 
             {/* Content */}
@@ -114,6 +165,24 @@ const GameLobby = () => {
           </div>
         </div>
       </main>
+
+      {/* Create Lobby Modal */}
+      <CreateLobbyModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        walletAddress={walletAddress}
+        onLobbyCreated={handleLobbyCreated}
+      />
+
+      {/* Join Lobby Modal */}
+      <JoinLobbyModal
+        open={joinModalOpen}
+        onOpenChange={setJoinModalOpen}
+        lobby={selectedLobby}
+        walletAddress={walletAddress}
+        gameId={gameId || "chess"}
+        onJoined={handleJoined}
+      />
     </div>
   );
 };
