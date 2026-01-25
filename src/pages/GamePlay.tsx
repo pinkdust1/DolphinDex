@@ -7,8 +7,8 @@ import { GameOverDialog } from "@/components/game/checkers/GameOverDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, Coins } from "lucide-react";
-import { useCheckers, Player } from "@/hooks/useCheckers";
+import { ArrowLeft, Users, Coins, Loader2 } from "lucide-react";
+import { useMultiplayerCheckers } from "@/hooks/useMultiplayerCheckers";
 import { formatWalletAddress } from "@/services/lobbyApi";
 
 const gameNames: Record<string, string> = {
@@ -20,18 +20,25 @@ const gameNames: Record<string, string> = {
 const GamePlay = () => {
   const { gameId, lobbyId } = useParams<{ gameId: string; lobbyId: string }>();
   const navigate = useNavigate();
-  const { gameState, handleCellClick, resetGame, surrender } = useCheckers();
+  
+  // Get connected wallet from localStorage
+  const [playerWallet] = useState(() => localStorage.getItem("xaman_account") || "");
+  
+  const {
+    gameState,
+    playerColor,
+    isLoading,
+    isMyTurn,
+    lobbyData,
+    handleCellClick,
+    resetGame,
+    surrender,
+  } = useMultiplayerCheckers({
+    lobbyId: lobbyId || "",
+    playerWallet,
+  });
   
   const [showGameOver, setShowGameOver] = useState(false);
-  const [playerColor] = useState<Player>("white"); // In multiplayer, this would be assigned
-  
-  // Mock lobby data - in real implementation, fetch from Directus
-  const [lobbyData] = useState({
-    id_lobby: lobbyId || "0001",
-    player1: "ra3vqn...sgeD",
-    player2: "rasqnv...qxEh",
-    cost: "10 XRP",
-  });
 
   const gameName = gameId ? gameNames[gameId] || gameId : "Game";
 
@@ -67,6 +74,22 @@ const GamePlay = () => {
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-20 pb-24">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <p className="text-muted-foreground">Loading game...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -84,38 +107,46 @@ const GamePlay = () => {
               </Button>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold">{gameName}</h1>
-                <p className="text-sm text-muted-foreground">Lobby #{lobbyData.id_lobby}</p>
+                <p className="text-sm text-muted-foreground">Lobby #{lobbyId}</p>
               </div>
-              <Badge variant="secondary" className="gap-1">
-                <Coins className="h-3 w-3" />
-                {lobbyData.cost}
-              </Badge>
+              {playerColor && (
+                <Badge variant={isMyTurn ? "default" : "secondary"}>
+                  {isMyTurn ? "Your turn" : "Opponent's turn"}
+                </Badge>
+              )}
             </div>
 
             {/* Players info */}
             <Card className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-400 flex items-center justify-center">
+                  <div className={`w-8 h-8 rounded-full bg-gray-100 border-2 flex items-center justify-center ${playerColor === "white" ? "border-primary ring-2 ring-primary/20" : "border-gray-400"}`}>
                     <Users className="h-4 w-4 text-gray-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">White</p>
-                    <code className="text-sm">{lobbyData.player1}</code>
+                    <p className="text-xs text-muted-foreground">White {playerColor === "white" && "(You)"}</p>
+                    <code className="text-sm">{formatWalletAddress(lobbyData?.creator_wallet || null)}</code>
                   </div>
                 </div>
                 <span className="text-muted-foreground font-bold">VS</span>
                 <div className="flex items-center gap-3">
                   <div>
-                    <p className="text-xs text-muted-foreground text-right">Black</p>
-                    <code className="text-sm">{lobbyData.player2}</code>
+                    <p className="text-xs text-muted-foreground text-right">Black {playerColor === "black" && "(You)"}</p>
+                    <code className="text-sm">{formatWalletAddress(lobbyData?.opponent_wallet || null)}</code>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-gray-800 border-2 border-gray-600 flex items-center justify-center">
+                  <div className={`w-8 h-8 rounded-full bg-gray-800 border-2 flex items-center justify-center ${playerColor === "black" ? "border-primary ring-2 ring-primary/20" : "border-gray-600"}`}>
                     <Users className="h-4 w-4 text-gray-300" />
                   </div>
                 </div>
               </div>
             </Card>
+
+            {/* Turn indicator */}
+            {!gameState.gameOver && (
+              <div className={`text-center py-2 px-4 rounded-lg ${isMyTurn ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                {isMyTurn ? "🎯 Your turn - make your move!" : "⏳ Waiting for opponent's move..."}
+              </div>
+            )}
 
             {/* Game board */}
             <CheckersBoard
@@ -129,7 +160,7 @@ const GamePlay = () => {
               gameState={gameState}
               onReset={resetGame}
               onSurrender={surrender}
-              playerColor={playerColor}
+              playerColor={playerColor || "white"}
             />
           </div>
         </div>
