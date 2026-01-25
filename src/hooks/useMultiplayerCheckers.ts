@@ -172,125 +172,185 @@ interface UseMultiplayerCheckersProps {
   playerWallet: string;
 }
 
+interface GameSessionData {
+  id: number;
+  lobby_id: string;
+  player1_wallet: string;
+  player2_wallet: string | null;
+  game_state: GameState | null;
+  current_turn: string;
+  game_status: string;
+  winner: string | null;
+  last_move_at: string;
+}
+
 export const useMultiplayerCheckers = ({ lobbyId, playerWallet }: UseMultiplayerCheckersProps) => {
   const [gameState, setGameState] = useState<GameState>(createInitialGameState());
   const [playerColor, setPlayerColor] = useState<Player | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionId, setSessionId] = useState<number | null>(null);
   const [lobbyData, setLobbyData] = useState<{
-    creator_id: string;
-    opponent_id: string | null;
-    creator_wallet?: string;
-    opponent_wallet?: string;
+    player1_wallet: string;
+    player2_wallet: string | null;
   } | null>(null);
   
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const lastMoveAtRef = useRef<string | null>(null);
 
-  // Fetch lobby data and determine player color
-  useEffect(() => {
-    const fetchLobbyData = async () => {
-      try {
-        // Fetch lobby with player wallet addresses
-        const { data: lobby, error } = await supabase
-          .from('lobbies')
-          .select(`
-            id,
-            creator_id,
-            opponent_id,
-            game_state,
-            status
-          `)
-          .eq('lobby_code', lobbyId)
-          .single();
+  // Fetch or create game session
+  const fetchGameSession = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("lobby-proxy", {
+        body: { action: "get_game_session", lobby_id: lobbyId }
+      });
 
-        if (error || !lobby) {
-          console.error('Error fetching lobby:', error);
-          setIsLoading(false);
-          return;
+      if (error) {
+        console.error("Error fetching game session:", error);
+        return null;
+      }
+
+      return data?.data as GameSessionData | null;
+    } catch (err) {
+      console.error("Error in fetchGameSession:", err);
+      return null;
+    }
+  }, [lobbyId]);
+
+  const createGameSession = useCallback(async (player1: string, player2: string | null) => {
+    try {
+      const initialState = createInitialGameState();
+      const { data, error } = await supabase.functions.invoke("lobby-proxy", {
+        body: {
+          action: "create_game_session",
+          lobby_id: lobbyId,
+          player1_wallet: player1,
+          player2_wallet: player2,
+          game_state: initialState
         }
+      });
 
-        // Fetch player wallet addresses
-        const playerIds = [lobby.creator_id, lobby.opponent_id].filter(Boolean) as string[];
-        const { data: players } = await supabase
-          .from('players')
-          .select('id, wallet_address')
-          .in('id', playerIds);
+      if (error) {
+        console.error("Error creating game session:", error);
+        return null;
+      }
 
-        const creatorPlayer = players?.find(p => p.id === lobby.creator_id);
-        const opponentPlayer = players?.find(p => p.id === lobby.opponent_id);
+      return data?.data as GameSessionData | null;
+    } catch (err) {
+      console.error("Error in createGameSession:", err);
+      return null;
+    }
+  }, [lobbyId]);
 
-        setLobbyData({
-          creator_id: lobby.creator_id,
-          opponent_id: lobby.opponent_id,
-          creator_wallet: creatorPlayer?.wallet_address,
-          opponent_wallet: opponentPlayer?.wallet_address,
-        });
+  const updateGameSession = useCallback(async (updates: {
+    game_state?: GameState;
+    current_turn?: string;
+    game_status?: string;
+    winner?: string | null;
+    player2_wallet?: string;
+  }) => {
+    if (!sessionId) return;
 
-        // Determine player color based on wallet address
-        // Creator plays as white, opponent plays as black
-        if (creatorPlayer?.wallet_address === playerWallet) {
+    try {
+      const { data, error } = await supabase.functions.invoke("lobby-proxy", {
+        body: {
+          action: "update_game_session",
+          session_id: sessionId,
+          ...updates
+        }
+      });
+
+      if (error) {
+        console.error("Error updating game session:", error);
+      }
+
+      return data?.data as GameSessionData | null;
+    } catch (err) {
+      console.error("Error in updateGameSession:", err);
+      return null;
+    }
+  }, [sessionId]);
+
+  // Initialize game session
+  useEffect(() => {
+    const initSession = async () => {
+      setIsLoading(true);
+      
+      let session = await fetchGameSession();
+      
+      if (!session) {
+        // Create new session - first player to arrive is player1 (white)
+        session = await createGameSession(playerWallet, null);
+        if (session) {
           setPlayerColor("white");
-        } else if (opponentPlayer?.wallet_address === playerWallet) {
+        }
+      } else {
+        // Session exists, determine player color
+        if (session.player1_wallet === playerWallet) {
+          setPlayerColor("white");
+        } else if (session.player2_wallet === playerWallet) {
+          setPlayerColor("black");
+        } else if (!session.player2_wallet) {
+          // Join as player2 (black)
+          await updateGameSession({ player2_wallet: playerWallet });
+          session.player2_wallet = playerWallet;
           setPlayerColor("black");
         }
+      }
 
-        // Load existing game state if available
-        if (lobby.game_state && typeof lobby.game_state === 'object') {
-          const savedState = lobby.game_state as unknown as GameState;
-          if (savedState.board) {
-            setGameState(savedState);
-          }
+      if (session) {
+        setSessionId(session.id);
+        setLobbyData({
+          player1_wallet: session.player1_wallet,
+          player2_wallet: session.player2_wallet
+        });
+        
+        if (session.game_state && session.game_state.board) {
+          setGameState(session.game_state);
         }
+        
+        lastMoveAtRef.current = session.last_move_at;
+      }
 
-        setIsLoading(false);
-      } catch (err) {
-        console.error('Error in fetchLobbyData:', err);
-        setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    initSession();
+  }, [lobbyId, playerWallet, fetchGameSession, createGameSession, updateGameSession]);
+
+  // Polling for game state updates
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const pollGameState = async () => {
+      const session = await fetchGameSession();
+      
+      if (session && session.last_move_at !== lastMoveAtRef.current) {
+        console.log("Game state updated from Directus");
+        lastMoveAtRef.current = session.last_move_at;
+        
+        if (session.game_state && session.game_state.board) {
+          setGameState(session.game_state);
+        }
+        
+        // Update player2 if they joined
+        if (session.player2_wallet && !lobbyData?.player2_wallet) {
+          setLobbyData({
+            player1_wallet: session.player1_wallet,
+            player2_wallet: session.player2_wallet
+          });
+        }
       }
     };
 
-    fetchLobbyData();
-  }, [lobbyId, playerWallet]);
-
-  // Subscribe to realtime game state updates
-  useEffect(() => {
-    if (!lobbyId) return;
-
-    const channel = supabase.channel(`game:${lobbyId}`)
-      .on('broadcast', { event: 'game_state' }, ({ payload }) => {
-        if (payload?.gameState) {
-          console.log('Received game state update:', payload.gameState);
-          setGameState(payload.gameState);
-        }
-      })
-      .subscribe();
-
-    channelRef.current = channel;
+    // Poll every 1.5 seconds
+    pollingRef.current = setInterval(pollGameState, 1500);
 
     return () => {
-      channel.unsubscribe();
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
     };
-  }, [lobbyId]);
-
-  // Broadcast game state to other player
-  const broadcastGameState = useCallback(async (newState: GameState) => {
-    if (!channelRef.current) return;
-    
-    await channelRef.current.send({
-      type: 'broadcast',
-      event: 'game_state',
-      payload: { gameState: newState },
-    });
-
-    // Also persist to database
-    try {
-      await supabase
-        .from('lobbies')
-        .update({ game_state: JSON.parse(JSON.stringify(newState)) })
-        .eq('lobby_code', lobbyId);
-    } catch (err) {
-      console.error('Error saving game state:', err);
-    }
-  }, [lobbyId]);
+  }, [sessionId, fetchGameSession, lobbyData]);
 
   // Check if it's this player's turn
   const isMyTurn = useCallback(() => {
@@ -370,8 +430,13 @@ export const useMultiplayerCheckers = ({ lobbyId, playerWallet }: UseMultiplayer
             moveHistory: [...prev.moveHistory, move],
           };
 
-          // Broadcast the new state
-          broadcastGameState(newState);
+          // Save to Directus
+          updateGameSession({
+            game_state: newState,
+            current_turn: nextPlayer,
+            game_status: gameOver ? "finished" : "playing",
+            winner: winner as string | null
+          });
           
           return newState;
         }
@@ -405,26 +470,36 @@ export const useMultiplayerCheckers = ({ lobbyId, playerWallet }: UseMultiplayer
         validMoves: [],
       };
     });
-  }, [isMyTurn, playerColor, broadcastGameState, gameState.gameOver]);
+  }, [isMyTurn, playerColor, updateGameSession, gameState.gameOver]);
 
   const resetGame = useCallback(() => {
     const newState = createInitialGameState();
     setGameState(newState);
-    broadcastGameState(newState);
-  }, [broadcastGameState]);
+    updateGameSession({
+      game_state: newState,
+      current_turn: "white",
+      game_status: "playing",
+      winner: null
+    });
+  }, [updateGameSession]);
 
   const surrender = useCallback(() => {
     if (!playerColor) return;
     
+    const winner = playerColor === "white" ? "black" : "white";
     const newState: GameState = {
       ...gameState,
       gameOver: true,
-      winner: playerColor === "white" ? "black" : "white",
+      winner,
     };
     
     setGameState(newState);
-    broadcastGameState(newState);
-  }, [playerColor, gameState, broadcastGameState]);
+    updateGameSession({
+      game_state: newState,
+      game_status: "finished",
+      winner
+    });
+  }, [playerColor, gameState, updateGameSession]);
 
   return {
     gameState,
