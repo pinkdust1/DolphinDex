@@ -88,16 +88,16 @@ const GameLobby = () => {
 
   const handleLobbyCreated = (lobby: LobbyData) => {
     toast({
-      title: "Лобби создано",
-      description: `Лобби #${lobby.id_lobby} успешно создано`,
+      title: "Lobby Created",
+      description: `Lobby #${lobby.id_lobby} created successfully`,
     });
     loadLobbies(true);
   };
 
   const handleJoined = () => {
     toast({
-      title: "Подключение",
-      description: "Вы успешно подключились к лобби!",
+      title: "Connected",
+      description: "You have successfully joined the lobby!",
     });
     loadLobbies(true);
   };
@@ -124,8 +124,8 @@ const GameLobby = () => {
                   </h1>
                   <p className="text-muted-foreground mt-1">
                     {walletAddress 
-                      ? "Выберите лобби или создайте новое"
-                      : "Подключите кошелёк для игры"}
+                      ? "Select a lobby or create a new one"
+                      : "Connect wallet to play"}
                   </p>
                 </div>
               </div>
@@ -138,7 +138,7 @@ const GameLobby = () => {
                   className="gap-2"
                 >
                   <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                  Обновить
+                  Refresh
                 </Button>
                 
                 <Button 
@@ -147,7 +147,7 @@ const GameLobby = () => {
                   className="gap-2"
                 >
                   <Plus className="h-4 w-4" />
-                  Создать лобби
+                  Create Lobby
                 </Button>
               </div>
             </div>

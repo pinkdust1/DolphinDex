@@ -36,25 +36,25 @@ export const JoinLobbyModal = ({
 
   const handleJoin = async () => {
     if (!walletAddress) {
-      setErrorMessage("Кошелёк не подключён");
+      setErrorMessage("Wallet not connected");
       setState("error");
       return;
     }
 
     if (!lobby) {
-      setErrorMessage("Лобби не найдено");
+      setErrorMessage("Lobby not found");
       setState("error");
       return;
     }
 
     if (lobby.lobby_status.toLowerCase() !== "free") {
-      setErrorMessage("Это лобби уже занято");
+      setErrorMessage("This lobby is already occupied");
       setState("error");
       return;
     }
 
     if (lobby.player1 === walletAddress) {
-      setErrorMessage("Вы не можете присоединиться к своему лобби");
+      setErrorMessage("You cannot join your own lobby");
       setState("error");
       return;
     }
@@ -66,7 +66,7 @@ export const JoinLobbyModal = ({
       const result = await joinLobby(lobby.id, walletAddress);
       
       if (!result.success) {
-        setErrorMessage(result.error || "Не удалось присоединиться к лобби");
+        setErrorMessage(result.error || "Failed to join lobby");
         setState("error");
         return;
       }
@@ -79,7 +79,7 @@ export const JoinLobbyModal = ({
         navigate(`/game/${gameId}/play/${lobby.id_lobby}`);
       }, 1500);
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : "Произошла ошибка");
+      setErrorMessage(err instanceof Error ? err.message : "An error occurred");
       setState("error");
     }
   };
@@ -97,16 +97,16 @@ export const JoinLobbyModal = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {state === "details" && `Лобби #${lobby.id_lobby}`}
-            {state === "joining" && "Подключение..."}
-            {state === "success" && "Успешно!"}
-            {state === "error" && "Ошибка"}
+            {state === "details" && `Lobby #${lobby.id_lobby}`}
+            {state === "joining" && "Connecting..."}
+            {state === "success" && "Success!"}
+            {state === "error" && "Error"}
           </DialogTitle>
           <DialogDescription>
-            {state === "details" && "Информация о лобби"}
-            {state === "joining" && "Подключение к игре..."}
-            {state === "success" && "Вы успешно присоединились к лобби!"}
-            {state === "error" && "Не удалось подключиться"}
+            {state === "details" && "Lobby information"}
+            {state === "joining" && "Connecting to the game..."}
+            {state === "success" && "You have successfully joined the lobby!"}
+            {state === "error" && "Failed to connect"}
           </DialogDescription>
         </DialogHeader>
 
@@ -118,7 +118,7 @@ export const JoinLobbyModal = ({
                 <div className="flex items-center gap-3">
                   <Hash className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-xs text-muted-foreground">ID лобби</p>
+                    <p className="text-xs text-muted-foreground">Lobby ID</p>
                     <p className="font-semibold">#{lobby.id_lobby}</p>
                   </div>
                 </div>
@@ -126,7 +126,7 @@ export const JoinLobbyModal = ({
                 <div className="flex items-center gap-3">
                   <Coins className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Ставка</p>
+                    <p className="text-xs text-muted-foreground">Bet Amount</p>
                     <p className="font-semibold">{lobby.cost}</p>
                   </div>
                 </div>
@@ -134,7 +134,7 @@ export const JoinLobbyModal = ({
                 <div className="flex items-center gap-3">
                   <Users className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Создатель</p>
+                    <p className="text-xs text-muted-foreground">Creator</p>
                     <code className="text-sm bg-background px-2 py-1 rounded">
                       {formatWalletAddress(lobby.player1)}
                     </code>
@@ -145,20 +145,20 @@ export const JoinLobbyModal = ({
               {!walletAddress && (
                 <div className="flex items-center gap-2 text-amber-500 text-sm">
                   <AlertCircle className="h-4 w-4" />
-                  <span>Подключите кошелёк для входа в лобби</span>
+                  <span>Connect wallet to join lobby</span>
                 </div>
               )}
 
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleClose} className="flex-1">
-                  Отмена
+                  Cancel
                 </Button>
                 <Button
                   onClick={handleJoin}
                   disabled={!walletAddress}
                   className="flex-1"
                 >
-                  Подключиться
+                  Join
                 </Button>
               </div>
             </div>
@@ -167,27 +167,27 @@ export const JoinLobbyModal = ({
           {state === "joining" && (
             <div className="flex flex-col items-center justify-center py-8">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="mt-4 text-muted-foreground">Подключение к лобби...</p>
+              <p className="mt-4 text-muted-foreground">Connecting to lobby...</p>
             </div>
           )}
 
           {state === "success" && (
             <div className="flex flex-col items-center justify-center py-4">
               <CheckCircle className="h-16 w-16 text-green-500" />
-              <p className="mt-4 text-lg font-semibold">Подключение успешно!</p>
-              <p className="text-muted-foreground">Переход в игру...</p>
+              <p className="mt-4 text-lg font-semibold">Connected successfully!</p>
+              <p className="text-muted-foreground">Joining game...</p>
             </div>
           )}
 
           {state === "error" && (
             <div className="flex flex-col items-center justify-center py-4">
               <AlertCircle className="h-16 w-16 text-destructive" />
-              <p className="mt-4 text-lg font-semibold text-destructive">Ошибка</p>
+              <p className="mt-4 text-lg font-semibold text-destructive">Error</p>
               <p className="text-muted-foreground text-center mt-2">
                 {errorMessage}
               </p>
               <Button onClick={() => setState("details")} className="mt-6 w-full">
-                Попробовать снова
+                Try Again
               </Button>
             </div>
           )}
