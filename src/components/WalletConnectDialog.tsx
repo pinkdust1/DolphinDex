@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import xamanWalletIcon from "@/assets/xaman-wallet.png";
+import { fetchAddressData } from "@/utils/xrpl";
 
 interface WalletConnectDialogProps {
   open: boolean;
@@ -22,6 +23,44 @@ export const WalletConnectDialog = ({ open, onOpenChange }: WalletConnectDialogP
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [payloadUuid, setPayloadUuid] = useState<string | null>(null);
   const [deepLink, setDeepLink] = useState<string | null>(null);
+
+  // Format balance with comma separator
+  const formatBalance = (balance: string): string => {
+    const num = parseFloat(balance);
+    return num.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' xrp';
+  };
+
+  // Save wallet address and balance to Directus user_wallet collection
+  const saveWalletToDirectus = async (account: string) => {
+    try {
+      console.log('Fetching balance for wallet:', account);
+      
+      // Fetch the current balance from XRPL
+      const addressData = await fetchAddressData(account);
+      const formattedBalance = formatBalance(addressData.balance);
+      
+      console.log('Saving wallet to Directus:', { adress: account, balance: formattedBalance });
+      
+      // Save to Directus via the proxy
+      const { data, error } = await supabase.functions.invoke('lobby-proxy', {
+        body: { 
+          action: 'save_wallet',
+          adress: account,
+          balance: formattedBalance
+        }
+      });
+
+      if (error) {
+        console.error('Failed to save wallet to Directus:', error);
+      } else if (data?.success) {
+        console.log(`Wallet ${data.action} in Directus successfully`);
+      } else {
+        console.error('Failed to save wallet:', data?.error);
+      }
+    } catch (error) {
+      console.error('Error saving wallet to Directus:', error);
+    }
+  };
 
   const sendWalletDataToDirectus = async (account: string, xamanData: any) => {
     try {
@@ -71,8 +110,11 @@ export const WalletConnectDialog = ({ open, onOpenChange }: WalletConnectDialogP
         if (data.signed && data.account) {
           clearInterval(checkStatus);
           
-          // Send all wallet data to Directus
+          // Send all wallet data to Directus (legacy collection)
           await sendWalletDataToDirectus(data.account, data.xamanData);
+          
+          // Save wallet address and balance to user_wallet collection
+          await saveWalletToDirectus(data.account);
           
           toast({
             title: "Wallet Connected!",
