@@ -15,6 +15,7 @@ import Trade from "./pages/Trade";
 import NFTs from "./pages/NFTs";
 import Game from "./pages/Game";
 import GameLobby from "./pages/GameLobby";
+import GamePlay from "./pages/GamePlay";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/nfts" element={<NFTs />} />
             <Route path="/game" element={<Game />} />
             <Route path="/game/:gameId" element={<GameLobby />} />
+            <Route path="/game/:gameId/play/:lobbyId" element={<GamePlay />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
