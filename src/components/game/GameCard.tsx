@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,8 @@ interface GameCardProps {
 }
 
 export const GameCard = ({ game }: GameCardProps) => {
+  const navigate = useNavigate();
+  
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
       case "easy":
@@ -65,7 +68,11 @@ export const GameCard = ({ game }: GameCardProps) => {
       </CardContent>
 
       <CardFooter className="p-4 pt-0 flex gap-2">
-        <Button className="flex-1" variant="default">
+        <Button 
+          className="flex-1" 
+          variant="default"
+          onClick={() => navigate(`/game/${game.id}`)}
+        >
           Play Now
         </Button>
         <Button variant="outline" size="icon">
