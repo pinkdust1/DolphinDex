@@ -170,6 +170,7 @@ const GameLobby = () => {
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
         walletAddress={walletAddress}
+        gameId={gameId || "checkers"}
         onLobbyCreated={handleLobbyCreated}
       />
 

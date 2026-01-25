@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,28 +9,85 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, CheckCircle, Clock, AlertCircle } from "lucide-react";
-import { createLobby, LobbyData } from "@/services/lobbyApi";
+import { Loader2, CheckCircle, Clock, AlertCircle, Gamepad2 } from "lucide-react";
+import { createLobby, fetchLobbies, LobbyData } from "@/services/lobbyApi";
+import { useNavigate } from "react-router-dom";
 
 interface CreateLobbyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   walletAddress: string | null;
+  gameId: string;
   onLobbyCreated: (lobby: LobbyData) => void;
 }
 
-type ModalState = "form" | "creating" | "created" | "waiting" | "error";
+type ModalState = "form" | "creating" | "created" | "waiting" | "ready" | "error";
 
 export const CreateLobbyModal = ({
   open,
   onOpenChange,
   walletAddress,
+  gameId,
   onLobbyCreated,
 }: CreateLobbyModalProps) => {
   const [betAmount, setBetAmount] = useState<string>("0");
   const [state, setState] = useState<ModalState>("form");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [createdLobby, setCreatedLobby] = useState<LobbyData | null>(null);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const navigate = useNavigate();
+
+  // Poll for player2 joining
+  useEffect(() => {
+    if (state === "waiting" && createdLobby) {
+      const pollForPlayer2 = async () => {
+        try {
+          const lobbies = await fetchLobbies();
+          const updatedLobby = lobbies.find(l => l.id === createdLobby.id);
+          
+          if (updatedLobby && updatedLobby.player2) {
+            // Player 2 has joined!
+            setCreatedLobby(updatedLobby);
+            setState("ready");
+            
+            // Clear polling
+            if (pollingRef.current) {
+              clearInterval(pollingRef.current);
+              pollingRef.current = null;
+            }
+            
+            // Navigate to game after short delay
+            setTimeout(() => {
+              navigate(`/game/${gameId}/play/${updatedLobby.id_lobby}`);
+            }, 1500);
+          }
+        } catch (err) {
+          console.error("Error polling for player2:", err);
+        }
+      };
+
+      // Poll every 2 seconds
+      pollingRef.current = setInterval(pollForPlayer2, 2000);
+      // Initial check
+      pollForPlayer2();
+
+      return () => {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+      };
+    }
+  }, [state, createdLobby, gameId, navigate]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, []);
 
   const handleCreate = async () => {
     if (!walletAddress) {
@@ -75,6 +132,11 @@ export const CreateLobbyModal = ({
   };
 
   const handleClose = () => {
+    // Stop polling when closing
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
     setState("form");
     setBetAmount("0");
     setErrorMessage("");
@@ -102,6 +164,7 @@ export const CreateLobbyModal = ({
             {state === "creating" && "Creating lobby..."}
             {state === "created" && "Lobby Created"}
             {state === "waiting" && "Waiting for Player"}
+            {state === "ready" && "Player Found!"}
             {state === "error" && "Error"}
           </DialogTitle>
           <DialogDescription>
@@ -109,6 +172,7 @@ export const CreateLobbyModal = ({
             {state === "creating" && "Please wait..."}
             {state === "created" && "Your lobby has been created successfully!"}
             {state === "waiting" && "Waiting for another player to join..."}
+            {state === "ready" && "Another player has joined! Starting game..."}
             {state === "error" && "An error occurred while creating the lobby"}
           </DialogDescription>
         </DialogHeader>
@@ -177,11 +241,27 @@ export const CreateLobbyModal = ({
               <Clock className="h-12 w-12 text-primary animate-pulse" />
               <p className="mt-4 text-lg font-medium">Waiting for another player...</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Another player can join at any time
+                Checking for players every 2 seconds...
               </p>
+              {createdLobby && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Lobby #{createdLobby.id_lobby}
+                </p>
+              )}
               <Button variant="outline" onClick={handleClose} className="mt-6">
-                Close
+                Cancel
               </Button>
+            </div>
+          )}
+
+          {state === "ready" && (
+            <div className="flex flex-col items-center justify-center py-8">
+              <Gamepad2 className="h-12 w-12 text-green-500" />
+              <p className="mt-4 text-lg font-medium text-green-500">Player Found!</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Starting game...
+              </p>
+              <Loader2 className="h-6 w-6 animate-spin text-primary mt-4" />
             </div>
           )}
 
