@@ -58,6 +58,21 @@ const MOCK_LOBBIES = [
   }
 ];
 
+// Generate a unique lobby ID (4 digits)
+function generateLobbyId(): string {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+// Get current time in HH:MM format
+function getCurrentTime(): string {
+  const now = new Date();
+  return now.toLocaleTimeString('ru-RU', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false 
+  });
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -199,6 +214,193 @@ serve(async (req) => {
           }
         );
       }
+    }
+
+    // CREATE LOBBY action
+    if (body?.action === "create_lobby") {
+      if (!directusToken) {
+        return new Response(
+          JSON.stringify({ error: "DIRECTUS_API_TOKEN not configured", success: false }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500 
+          }
+        );
+      }
+
+      const { player1, cost } = body;
+      
+      if (!player1) {
+        return new Response(
+          JSON.stringify({ error: "Wallet address is required", success: false }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400 
+          }
+        );
+      }
+
+      // Validate cost
+      const costValue = parseFloat(cost) || 0;
+      if (costValue < 0 || costValue > 100) {
+        return new Response(
+          JSON.stringify({ error: "Cost must be between 0 and 100 XRP", success: false }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400 
+          }
+        );
+      }
+
+      const lobbyData = {
+        id_lobby: generateLobbyId(),
+        player1: player1,
+        player2: null,
+        cost: costValue === 0 ? "Free" : `${costValue} XRP`,
+        lobby_status: "free",
+        start_time: getCurrentTime()
+      };
+
+      console.log("Creating lobby in Directus:", lobbyData);
+
+      const createResponse = await fetch(DIRECTUS_LOBBY_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${directusToken}`,
+        },
+        body: JSON.stringify(lobbyData),
+      });
+
+      if (!createResponse.ok) {
+        const errorText = await createResponse.text();
+        console.error("Failed to create lobby:", errorText);
+        return new Response(
+          JSON.stringify({ error: "Failed to create lobby", success: false }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500 
+          }
+        );
+      }
+
+      const newLobby = await createResponse.json();
+      console.log("Lobby created successfully:", newLobby);
+      
+      return new Response(
+        JSON.stringify({ success: true, data: newLobby.data }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200 
+        }
+      );
+    }
+
+    // JOIN LOBBY action
+    if (body?.action === "join_lobby") {
+      if (!directusToken) {
+        return new Response(
+          JSON.stringify({ error: "DIRECTUS_API_TOKEN not configured", success: false }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500 
+          }
+        );
+      }
+
+      const { lobby_id, player2 } = body;
+      
+      if (!lobby_id || !player2) {
+        return new Response(
+          JSON.stringify({ error: "Lobby ID and wallet address are required", success: false }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400 
+          }
+        );
+      }
+
+      console.log("Joining lobby:", { lobby_id, player2 });
+
+      // First, check if lobby exists and is free
+      const checkResponse = await fetch(`${DIRECTUS_LOBBY_URL}/${lobby_id}`, {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${directusToken}`,
+        },
+      });
+
+      if (!checkResponse.ok) {
+        return new Response(
+          JSON.stringify({ error: "Lobby not found", success: false }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 404 
+          }
+        );
+      }
+
+      const lobbyData = await checkResponse.json();
+      
+      if (lobbyData.data.lobby_status !== "free") {
+        return new Response(
+          JSON.stringify({ error: "Lobby is not available", success: false }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400 
+          }
+        );
+      }
+
+      // Check that player2 is not the same as player1
+      if (lobbyData.data.player1 === player2) {
+        return new Response(
+          JSON.stringify({ error: "You cannot join your own lobby", success: false }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400 
+          }
+        );
+      }
+
+      // Update lobby with player2 and set status to busy
+      const updateResponse = await fetch(`${DIRECTUS_LOBBY_URL}/${lobby_id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${directusToken}`,
+        },
+        body: JSON.stringify({
+          player2: player2,
+          lobby_status: "busy"
+        }),
+      });
+
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error("Failed to join lobby:", errorText);
+        return new Response(
+          JSON.stringify({ error: "Failed to join lobby", success: false }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500 
+          }
+        );
+      }
+
+      const updatedLobby = await updateResponse.json();
+      console.log("Joined lobby successfully:", updatedLobby);
+      
+      return new Response(
+        JSON.stringify({ success: true, data: updatedLobby.data }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200 
+        }
+      );
     }
 
     // Default action: fetch lobbies

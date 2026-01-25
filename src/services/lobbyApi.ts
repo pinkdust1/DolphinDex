@@ -13,6 +13,19 @@ export interface LobbyData {
 
 interface DirectusResponse {
   data: LobbyData[];
+  isMock?: boolean;
+}
+
+interface CreateLobbyResponse {
+  success: boolean;
+  data?: LobbyData;
+  error?: string;
+}
+
+interface JoinLobbyResponse {
+  success: boolean;
+  data?: LobbyData;
+  error?: string;
 }
 
 export async function fetchLobbies(): Promise<LobbyData[]> {
@@ -24,6 +37,38 @@ export async function fetchLobbies(): Promise<LobbyData[]> {
   
   const result = funcData as DirectusResponse;
   return result.data || [];
+}
+
+export async function createLobby(player1: string, cost: number): Promise<CreateLobbyResponse> {
+  const { data, error } = await supabase.functions.invoke("lobby-proxy", {
+    body: {
+      action: "create_lobby",
+      player1,
+      cost
+    }
+  });
+  
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  
+  return data as CreateLobbyResponse;
+}
+
+export async function joinLobby(lobbyId: number, player2: string): Promise<JoinLobbyResponse> {
+  const { data, error } = await supabase.functions.invoke("lobby-proxy", {
+    body: {
+      action: "join_lobby",
+      lobby_id: lobbyId,
+      player2
+    }
+  });
+  
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  
+  return data as JoinLobbyResponse;
 }
 
 export function getPlayerCount(lobby: LobbyData): number {
