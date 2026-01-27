@@ -1,14 +1,33 @@
-import { User, Wallet, Copy, LogOut, CheckCircle, XCircle } from 'lucide-react';
+import { Wallet, Copy, LogOut, CheckCircle } from 'lucide-react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
+
+interface TelegramUser {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+}
 
 export const ProfileTab = () => {
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
+  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
 
   const isConnected = !!wallet;
+
+  useEffect(() => {
+    // Get Telegram user data from WebApp
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg?.initDataUnsafe?.user) {
+      setTelegramUser(tg.initDataUnsafe.user);
+    }
+  }, []);
 
   const handleConnect = () => {
     tonConnectUI.openModal();
@@ -36,44 +55,57 @@ export const ProfileTab = () => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
+  const getDisplayName = () => {
+    if (telegramUser?.username) {
+      return `@${telegramUser.username}`;
+    }
+    if (telegramUser?.first_name) {
+      return telegramUser.last_name 
+        ? `${telegramUser.first_name} ${telegramUser.last_name}`
+        : telegramUser.first_name;
+    }
+    return 'User';
+  };
+
+  const getInitials = () => {
+    if (telegramUser?.first_name) {
+      const first = telegramUser.first_name[0] || '';
+      const last = telegramUser.last_name?.[0] || '';
+      return (first + last).toUpperCase();
+    }
+    return 'U';
+  };
+
   return (
     <div className="flex flex-col gap-4">
+      {/* User Header */}
       <div className="flex items-center gap-3">
-        <User className="w-6 h-6 text-foreground" />
-        <h2 className="text-xl font-bold text-foreground">Profile</h2>
+        <Avatar className="w-10 h-10">
+          <AvatarImage src={telegramUser?.photo_url} alt="Avatar" />
+          <AvatarFallback className="bg-muted text-foreground text-sm font-medium">
+            {getInitials()}
+          </AvatarFallback>
+        </Avatar>
+        <h2 className="text-xl font-bold text-foreground">{getDisplayName()}</h2>
       </div>
       
-      {/* Wallet Status Card */}
+      {/* Wallet Card */}
       <Card className="bg-card border-border">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Wallet className="w-5 h-5" />
-              TON Wallet
-            </CardTitle>
-            {isConnected ? (
-              <div className="flex items-center gap-1 text-green-500">
-                <CheckCircle className="w-4 h-4" />
-                <span className="text-sm">Connected</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <XCircle className="w-4 h-4" />
-                <span className="text-sm">Not Connected</span>
-              </div>
-            )}
-          </div>
-          <CardDescription>
-            {isConnected 
-              ? 'Your wallet is connected and ready to use.' 
-              : 'Connect your TON wallet to play games and earn rewards.'
-            }
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent>
+        <CardContent className="pt-4">
           {isConnected && wallet?.account ? (
             <div className="flex flex-col gap-4">
+              {/* Wallet Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Wallet className="w-5 h-5 text-foreground" />
+                  <span className="text-base font-medium text-foreground">TON Wallet</span>
+                </div>
+                <div className="flex items-center gap-1 text-green-500">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-sm">Connected</span>
+                </div>
+              </div>
+
               {/* Wallet Address */}
               <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div>
@@ -110,42 +142,19 @@ export const ProfileTab = () => {
               </Button>
             </div>
           ) : (
-            <Button 
-              onClick={handleConnect}
-              className="w-full"
-            >
-              <Wallet className="w-4 h-4 mr-2" />
-              Connect TON Wallet
-            </Button>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Wallet className="w-5 h-5 text-foreground" />
+                <span className="text-base font-medium text-foreground">TON Wallet</span>
+              </div>
+              <Button 
+                onClick={handleConnect}
+                size="sm"
+              >
+                Connect TON Wallet
+              </Button>
+            </div>
           )}
-        </CardContent>
-      </Card>
-      
-      {/* Stats Card - Placeholder */}
-      <Card className="bg-card border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Statistics</CardTitle>
-          <CardDescription>Your gaming stats and history</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-3 bg-muted/50 rounded-lg text-center">
-              <p className="text-2xl font-bold text-foreground">0</p>
-              <p className="text-xs text-muted-foreground">Games Played</p>
-            </div>
-            <div className="p-3 bg-muted/50 rounded-lg text-center">
-              <p className="text-2xl font-bold text-foreground">0</p>
-              <p className="text-xs text-muted-foreground">Wins</p>
-            </div>
-            <div className="p-3 bg-muted/50 rounded-lg text-center">
-              <p className="text-2xl font-bold text-foreground">0</p>
-              <p className="text-xs text-muted-foreground">TON Earned</p>
-            </div>
-            <div className="p-3 bg-muted/50 rounded-lg text-center">
-              <p className="text-2xl font-bold text-foreground">0</p>
-              <p className="text-xs text-muted-foreground">NFTs Owned</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
