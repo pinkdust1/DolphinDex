@@ -5,7 +5,7 @@ interface MiniAppHeaderProps {
   title?: string;
 }
 
-export const MiniAppHeader = ({ title = 'DolphinScan' }: MiniAppHeaderProps) => {
+export const MiniAppHeader = ({ title = 'Dolphin' }: MiniAppHeaderProps) => {
   const { resolvedTheme } = useTheme();
 
   return (
