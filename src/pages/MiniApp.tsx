@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { TonConnectProvider } from '@/providers/TonConnectProvider';
 import { SplashScreen } from '@/components/miniapp/SplashScreen';
 import { MiniAppHeader } from '@/components/miniapp/MiniAppHeader';
@@ -10,6 +10,28 @@ import { ProfileTab } from '@/components/miniapp/tabs/ProfileTab';
 const MiniAppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>('profile');
+
+  // Initialize Telegram WebApp and enable fullscreen
+  useEffect(() => {
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg) {
+      // Expand to full height
+      tg.expand();
+      
+      // Request fullscreen mode if available
+      if (tg.requestFullscreen) {
+        tg.requestFullscreen();
+      }
+      
+      // Tell Telegram the app is ready
+      tg.ready();
+      
+      // Log user data for debugging
+      console.log('Telegram WebApp initData:', tg.initData);
+      console.log('Telegram WebApp initDataUnsafe:', tg.initDataUnsafe);
+      console.log('Telegram WebApp user:', tg.initDataUnsafe?.user);
+    }
+  }, []);
 
   const handleSplashComplete = useCallback(() => {
     setIsLoading(false);

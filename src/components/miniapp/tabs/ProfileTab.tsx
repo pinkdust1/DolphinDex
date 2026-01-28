@@ -24,8 +24,23 @@ export const ProfileTab = () => {
   useEffect(() => {
     // Get Telegram user data from WebApp
     const tg = (window as any).Telegram?.WebApp;
+    
+    // Try to get user data
     if (tg?.initDataUnsafe?.user) {
       setTelegramUser(tg.initDataUnsafe.user);
+    } else if (tg) {
+      // If no user data yet, wait for WebApp to be ready
+      const checkUser = () => {
+        if (tg.initDataUnsafe?.user) {
+          setTelegramUser(tg.initDataUnsafe.user);
+        }
+      };
+      
+      // Check immediately and after a short delay
+      checkUser();
+      const timer = setTimeout(checkUser, 500);
+      
+      return () => clearTimeout(timer);
     }
   }, []);
 

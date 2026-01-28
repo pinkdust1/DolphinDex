@@ -36,8 +36,20 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
 
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
+    
     if (tg?.initDataUnsafe?.user) {
       setTelegramUser(tg.initDataUnsafe.user);
+    } else if (tg) {
+      const checkUser = () => {
+        if (tg.initDataUnsafe?.user) {
+          setTelegramUser(tg.initDataUnsafe.user);
+        }
+      };
+      
+      checkUser();
+      const timer = setTimeout(checkUser, 500);
+      
+      return () => clearTimeout(timer);
     }
   }, []);
 
