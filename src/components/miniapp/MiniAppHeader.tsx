@@ -1,5 +1,7 @@
 import { useTheme } from 'next-themes';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import dolphinLogoWhite from '@/assets/dolphin-logo-white.png';
+import dolphinLogo from '@/assets/dolphin-logo.png';
 
 interface MiniAppHeaderProps {
   title?: string;
@@ -13,10 +15,7 @@ export const MiniAppHeader = ({ title = 'Dolphin' }: MiniAppHeaderProps) => {
       <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
         <div className="flex items-center gap-3">
           <img
-            src={resolvedTheme === 'dark' 
-              ? '/src/assets/dolphin-logo-white.png' 
-              : '/src/assets/dolphin-logo.png'
-            }
+            src={resolvedTheme === 'dark' ? dolphinLogoWhite : dolphinLogo}
             alt="Logo"
             className="w-8 h-8 object-contain"
           />
