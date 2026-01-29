@@ -1,17 +1,9 @@
 import { Gamepad2, ShoppingCart, LucideIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTelegramUser } from '@/hooks/useTelegramUser';
 
 export type TabId = 'game' | 'market' | 'profile';
-
-interface TelegramUser {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-}
 
 interface TabItem {
   id: TabId;
@@ -32,28 +24,16 @@ interface BottomNavProps {
 }
 
 export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
-  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
-
-  useEffect(() => {
-    const tg = (window as any).Telegram?.WebApp;
-    
-    if (tg?.initDataUnsafe?.user) {
-      setTelegramUser(tg.initDataUnsafe.user);
-    } else if (tg) {
-      const checkUser = () => {
-        if (tg.initDataUnsafe?.user) {
-          setTelegramUser(tg.initDataUnsafe.user);
-        }
-      };
-      
-      checkUser();
-      const timer = setTimeout(checkUser, 500);
-      
-      return () => clearTimeout(timer);
-    }
-  }, []);
+  const { telegramUser, directusUser } = useTelegramUser();
 
   const getDisplayName = () => {
+    // Prefer Directus data
+    if (directusUser?.username) {
+      return directusUser.username;
+    }
+    if (directusUser?.name) {
+      return directusUser.name.split(' ')[0]; // First name only for nav
+    }
     if (telegramUser?.username) {
       return `@${telegramUser.username}`;
     }
@@ -64,10 +44,17 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   };
 
   const getInitials = () => {
+    if (directusUser?.name) {
+      return directusUser.name[0].toUpperCase();
+    }
     if (telegramUser?.first_name) {
       return telegramUser.first_name[0].toUpperCase();
     }
     return 'U';
+  };
+
+  const getPhotoUrl = () => {
+    return directusUser?.photo_url || telegramUser?.photo_url || '';
   };
 
   return (
@@ -90,7 +77,7 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
             >
               {tab.isProfile ? (
                 <Avatar className={cn('w-5 h-5', isActive && 'ring-2 ring-foreground')}>
-                  <AvatarImage src={telegramUser?.photo_url} alt="Avatar" />
+                  <AvatarImage src={getPhotoUrl()} alt="Avatar" />
                   <AvatarFallback className="bg-muted text-foreground text-[10px] font-medium">
                     {getInitials()}
                   </AvatarFallback>

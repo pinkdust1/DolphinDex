@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.trading-api]
 verify_jwt = false
+
+[functions.lobby-proxy]
+verify_jwt = false
+
+[functions.tg-user-sync]
+verify_jwt = false
