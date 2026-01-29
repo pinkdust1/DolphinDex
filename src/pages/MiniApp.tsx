@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { TonConnectProvider } from '@/providers/TonConnectProvider';
+import { LanguageProvider } from '@/hooks/useLanguage';
 import { SplashScreen } from '@/components/miniapp/SplashScreen';
 import { BottomNav, TabId } from '@/components/miniapp/BottomNav';
 import { GameTab } from '@/components/miniapp/tabs/GameTab';
@@ -74,7 +75,9 @@ const MiniAppContent = () => {
 const MiniApp = () => {
   return (
     <TonConnectProvider>
-      <MiniAppContent />
+      <LanguageProvider>
+        <MiniAppContent />
+      </LanguageProvider>
     </TonConnectProvider>
   );
 };

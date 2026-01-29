@@ -2,20 +2,21 @@ import { Gamepad2, ShoppingCart, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTelegramUser } from '@/hooks/useTelegramUser';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export type TabId = 'game' | 'market' | 'profile';
 
 interface TabItem {
   id: TabId;
-  label: string;
+  labelKey: 'game' | 'market' | 'profile';
   icon?: LucideIcon;
   isProfile?: boolean;
 }
 
 const baseTabs: TabItem[] = [
-  { id: 'game', label: 'Game', icon: Gamepad2 },
-  { id: 'market', label: 'Market', icon: ShoppingCart },
-  { id: 'profile', label: 'Profile', isProfile: true },
+  { id: 'game', labelKey: 'game', icon: Gamepad2 },
+  { id: 'market', labelKey: 'market', icon: ShoppingCart },
+  { id: 'profile', labelKey: 'profile', isProfile: true },
 ];
 
 interface BottomNavProps {
@@ -25,6 +26,7 @@ interface BottomNavProps {
 
 export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   const { telegramUser, directusUser } = useTelegramUser();
+  const { t } = useLanguage();
 
   const getDisplayName = () => {
     // Prefer Directus data
@@ -40,7 +42,7 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
     if (telegramUser?.first_name) {
       return telegramUser.first_name;
     }
-    return 'Profile';
+    return t.profile;
   };
 
   const getInitials = () => {
@@ -63,6 +65,7 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
         {baseTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
+          const label = t[tab.labelKey];
           
           return (
             <button
@@ -89,7 +92,7 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
                 'text-xs font-medium max-w-[80px] truncate',
                 isActive && 'font-semibold'
               )}>
-                {tab.isProfile ? getDisplayName() : tab.label}
+                {tab.isProfile ? getDisplayName() : label}
               </span>
               {isActive && (
                 <div className="absolute bottom-0 w-12 h-0.5 bg-foreground rounded-full" />

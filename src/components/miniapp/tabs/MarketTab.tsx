@@ -2,6 +2,7 @@ import { Search, Clock, ChevronDown, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { GiftCard } from '../GiftCard';
+import { useLanguage } from '@/hooks/useLanguage';
 
 // Mock data for gifts
 const mockGifts = [
@@ -12,6 +13,8 @@ const mockGifts = [
 ];
 
 export const MarketTab = () => {
+  const { t } = useLanguage();
+
   return (
     <div className="flex flex-col gap-4">
       {/* Search and Actions Row */}
@@ -22,7 +25,7 @@ export const MarketTab = () => {
             <Input 
               type="text" 
               className="w-full min-w-0 text-[14px] leading-[20px] tracking-[-0.28px] font-bold text-foreground placeholder:text-muted-foreground border-0 bg-transparent p-0 h-auto focus-visible:ring-0"
-              placeholder="Поиск Гифта"
+              placeholder={t.searchGift}
             />
           </label>
         </div>
@@ -72,7 +75,7 @@ export const MarketTab = () => {
           variant="ghost"
           className="bg-secondary hover:bg-secondary/80 text-foreground pl-3 pr-2 h-10 rounded-xl gap-0.5 whitespace-nowrap"
         >
-          <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">Тип</span>
+          <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">{t.type}</span>
           <ChevronDown className="w-5 h-5" />
         </Button>
 
@@ -81,7 +84,7 @@ export const MarketTab = () => {
           variant="ghost"
           className="bg-secondary hover:bg-secondary/80 text-foreground pl-3 pr-2 h-10 rounded-xl gap-0.5 whitespace-nowrap"
         >
-          <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">Скин</span>
+          <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">{t.skin}</span>
           <ChevronDown className="w-5 h-5" />
         </Button>
 
@@ -90,7 +93,7 @@ export const MarketTab = () => {
           variant="ghost"
           className="bg-secondary hover:bg-secondary/80 text-foreground pl-3 pr-2 h-10 rounded-xl gap-0.5 whitespace-nowrap"
         >
-          <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">Фон</span>
+          <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">{t.background}</span>
           <ChevronDown className="w-5 h-5" />
         </Button>
       </div>

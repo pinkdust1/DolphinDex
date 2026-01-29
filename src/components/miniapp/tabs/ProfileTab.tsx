@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
 import { useTelegramUser } from '@/hooks/useTelegramUser';
+import { useLanguage } from '@/hooks/useLanguage';
+import { LanguageToggle } from '@/components/miniapp/LanguageToggle';
 
 export const ProfileTab = () => {
   const [tonConnectUI] = useTonConnectUI();
@@ -17,6 +19,7 @@ export const ProfileTab = () => {
     saveWallet, 
     refreshUser 
   } = useTelegramUser();
+  const { t } = useLanguage();
 
   const isConnected = !!wallet;
 
@@ -132,24 +135,27 @@ export const ProfileTab = () => {
   return (
     <div className="flex flex-col gap-4">
       {/* User Header */}
-      <div className="flex items-center gap-3 overflow-hidden">
-        <div className="relative flex-none w-8 h-8">
-          <Avatar className="absolute inset-0 w-8 h-8">
-            <AvatarImage src={getPhotoUrl()} alt="User Avatar" className="rounded-full" />
-            <AvatarFallback className="bg-muted text-foreground text-xs font-medium">
-              {getInitials()}
-            </AvatarFallback>
-          </Avatar>
+      <div className="flex items-center justify-between gap-3 overflow-hidden">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="relative flex-none w-8 h-8">
+            <Avatar className="absolute inset-0 w-8 h-8">
+              <AvatarImage src={getPhotoUrl()} alt="User Avatar" className="rounded-full" />
+              <AvatarFallback className="bg-muted text-foreground text-xs font-medium">
+                {getInitials()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="text-[15px] leading-[120%] tracking-[-0.3px] font-bold text-foreground whitespace-nowrap text-ellipsis overflow-hidden">
+            {getDisplayName()}
+          </div>
         </div>
-        <div className="text-[15px] leading-[120%] tracking-[-0.3px] font-bold text-foreground whitespace-nowrap text-ellipsis overflow-hidden">
-          {getDisplayName()}
-        </div>
+        <LanguageToggle />
       </div>
       {/* Balance Card */}
       <div className="bg-card rounded-2xl flex justify-between items-center gap-6 px-5 py-4 border border-border">
         <div className="flex flex-col gap-1.5">
           <div className="text-[13px] leading-[20px] font-bold text-muted-foreground tracking-[-0.26px]">
-            Баланс
+            {t.balance}
           </div>
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -165,7 +171,7 @@ export const ProfileTab = () => {
           <Button 
             className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-4 rounded-xl text-[14px] leading-[20px] tracking-[-0.28px] font-bold"
           >
-            Пополнить
+            {t.topUp}
           </Button>
           <Button 
             variant="secondary"
