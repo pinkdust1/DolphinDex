@@ -135,18 +135,17 @@ export const ProfileTab = () => {
   return (
     <div className="flex flex-col gap-4">
       {/* User Header */}
-      <div className="flex items-center gap-3">
-        <Avatar className="w-12 h-12">
-          <AvatarImage src={getPhotoUrl()} alt="Avatar" />
-          <AvatarFallback className="bg-muted text-foreground text-sm font-medium">
-            {getInitials()}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <h2 className="text-xl font-bold text-foreground">{getDisplayName()}</h2>
-          {directusUser?.username && (
-            <p className="text-sm text-muted-foreground">{directusUser.username}</p>
-          )}
+      <div className="flex items-center gap-3 overflow-hidden">
+        <div className="relative flex-none w-8 h-8">
+          <Avatar className="absolute inset-0 w-8 h-8">
+            <AvatarImage src={getPhotoUrl()} alt="User Avatar" className="rounded-full" />
+            <AvatarFallback className="bg-muted text-foreground text-xs font-medium">
+              {getInitials()}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+        <div className="text-[15px] leading-[120%] tracking-[-0.3px] font-bold text-foreground whitespace-nowrap text-ellipsis overflow-hidden">
+          {getDisplayName()}
         </div>
       </div>
 
