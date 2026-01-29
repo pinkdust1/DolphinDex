@@ -1,4 +1,4 @@
-import { Wallet, Copy, LogOut, CheckCircle, RefreshCw, Coins } from 'lucide-react';
+import { Wallet, Copy, LogOut, CheckCircle, RefreshCw } from 'lucide-react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -148,26 +148,37 @@ export const ProfileTab = () => {
           {getDisplayName()}
         </div>
       </div>
-
       {/* Balance Card */}
-      <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-        <CardContent className="pt-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Coins className="w-5 h-5 text-primary" />
-              <span className="text-sm text-muted-foreground">Balance</span>
-            </div>
-            <span className={`text-xs px-2 py-1 rounded-full ${
-              getStatus() === 'active' 
-                ? 'bg-green-500/20 text-green-500' 
-                : 'bg-muted text-muted-foreground'
-            }`}>
-              {getStatus()}
-            </span>
+      <div className="bg-card rounded-2xl flex justify-between items-center gap-6 px-5 py-4 border border-border">
+        <div className="flex flex-col gap-1.5">
+          <div className="text-[13px] leading-[20px] font-bold text-muted-foreground tracking-[-0.26px]">
+            Rolls баланс
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{getBalance()} TON</p>
-        </CardContent>
-      </Card>
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="16" height="16" rx="8" fill="#237BFF"/>
+              <path d="M10.7021 4.9248C11.2224 4.92489 11.6522 5.17141 11.8857 5.52246C12.12 5.87474 12.1551 6.33186 11.8877 6.7373L8.55273 11.7939C8.42752 11.9838 8.21079 12.0752 8 12.0752C7.78922 12.0752 7.57253 11.9837 7.44727 11.7939L4.1123 6.7373C3.84467 6.33141 3.88007 5.87461 4.11426 5.52246C4.34791 5.17147 4.77823 4.9248 5.29883 4.9248H10.7021ZM5.29785 5.93848C5.20076 5.93848 5.1287 5.98331 5.0918 6.03906C5.05554 6.09409 5.05107 6.16199 5.09082 6.22266L5.0918 6.22363L6.84375 8.96582L6.8457 8.96777L7.43164 9.95996V5.93848H5.29785ZM8.56738 9.95996L9.15332 8.96875L9.15527 8.9668L10.9062 6.22363L10.9072 6.22266C10.9472 6.16189 10.9426 6.0942 10.9062 6.03906C10.8694 5.98318 10.7974 5.93848 10.7002 5.93848H8.56738V9.95996Z" fill="white" stroke="white" strokeWidth="0.15"/>
+            </svg>
+            <div className="text-[16px] leading-normal font-bold text-foreground tracking-[-0.32px]">
+              {getBalance()} TON
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button 
+            className="bg-[#237BFF] hover:bg-[#1a6ae6] text-white h-10 px-4 rounded-xl text-[14px] leading-[20px] tracking-[-0.28px] font-bold"
+          >
+            Пополнить
+          </Button>
+          <Button 
+            variant="secondary"
+            size="icon"
+            className="bg-secondary hover:bg-secondary/80 text-foreground h-10 w-10 rounded-xl"
+          >
+            <Wallet className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
       
       {/* Wallet Card */}
       <Card className="bg-card border-border">
