@@ -73,6 +73,7 @@ const MiniAppContent = () => {
 };
 
 const MiniApp = () => {
+  // LanguageProvider must wrap all components that use useLanguage
   return (
     <TonConnectProvider>
       <LanguageProvider>
