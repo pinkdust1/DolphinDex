@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { TonConnectProvider } from '@/providers/TonConnectProvider';
 import { SplashScreen } from '@/components/miniapp/SplashScreen';
-import { MiniAppHeader } from '@/components/miniapp/MiniAppHeader';
 import { BottomNav, TabId } from '@/components/miniapp/BottomNav';
 import { GameTab } from '@/components/miniapp/tabs/GameTab';
 import { MarketTab } from '@/components/miniapp/tabs/MarketTab';
@@ -60,10 +59,8 @@ const MiniAppContent = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <MiniAppHeader />
-      
       {/* Main Content */}
-      <main className="pt-14 pb-20 px-4 max-w-lg mx-auto">
+      <main className="pt-4 pb-20 px-4 max-w-lg mx-auto">
         <div className="py-4">
           {renderTabContent()}
         </div>
