@@ -1,6 +1,15 @@
 import { Search, Clock, ChevronDown, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { GiftCard } from '../GiftCard';
+
+// Mock data for gifts
+const mockGifts = [
+  { id: '4977', name: 'Whip Cupcake', price: '3.71', imageUrl: 'https://nft.fragment.com/gift/whipcupcake-4977.large.jpg' },
+  { id: '62519', name: 'B-Day Candle', price: '3.71', imageUrl: 'https://nft.fragment.com/gift/bdaycandle-62519.large.jpg' },
+  { id: '108323', name: 'Pet Snake', price: '3.72', imageUrl: 'https://nft.fragment.com/gift/petsnake-108323.large.jpg' },
+  { id: '227762', name: 'Ice Cream', price: '3.74', imageUrl: 'https://nft.fragment.com/gift/icecream-227762.large.jpg' },
+];
 
 export const MarketTab = () => {
   return (
@@ -86,9 +95,19 @@ export const MarketTab = () => {
         </Button>
       </div>
 
-      {/* Placeholder for gifts grid */}
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <p className="text-sm text-muted-foreground">Гифты появятся здесь</p>
+      {/* Gifts Grid */}
+      <div className="grid grid-cols-3 gap-4 w-full">
+        {mockGifts.map((gift) => (
+          <GiftCard
+            key={gift.id}
+            id={gift.id}
+            name={gift.name}
+            price={gift.price}
+            imageUrl={gift.imageUrl}
+            onAddClick={() => console.log('Add clicked:', gift.id)}
+            onBuyClick={() => console.log('Buy clicked:', gift.id)}
+          />
+        ))}
       </div>
     </div>
   );
