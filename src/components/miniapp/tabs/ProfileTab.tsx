@@ -149,7 +149,7 @@ export const ProfileTab = () => {
       <div className="bg-card rounded-2xl flex justify-between items-center gap-6 px-5 py-4 border border-border">
         <div className="flex flex-col gap-1.5">
           <div className="text-[13px] leading-[20px] font-bold text-muted-foreground tracking-[-0.26px]">
-            Rolls баланс
+            Баланс
           </div>
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
