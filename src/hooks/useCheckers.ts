@@ -72,7 +72,7 @@ const isValidPosition = (row: number, col: number): boolean => {
   return row >= 0 && row < 8 && col >= 0 && col < 8;
 };
 
-// Get all valid moves for a piece
+// Get all valid moves for a piece (including flying king rules)
 const getValidMovesForPiece = (
   board: PieceType[][],
   row: number,
@@ -86,20 +86,90 @@ const getValidMovesForPiece = (
   const moves: Move[] = [];
   const isKingPiece = isKing(piece);
   
-  // Movement directions: white moves up (-1), black moves down (+1)
-  // Kings can move in both directions
-  const moveDirections: number[] = [];
-  if (player === "white" || isKingPiece) moveDirections.push(-1);
-  if (player === "black" || isKingPiece) moveDirections.push(1);
-  
-  // Capture directions: ALL pieces can capture in BOTH directions (standard checkers rules)
-  const captureDirections: number[] = [-1, 1];
-  
+  const allDirections: number[] = [-1, 1];
   const colDirections = [-1, 1];
   
-  // Regular moves (only in movement directions)
-  if (!mustCapture) {
-    for (const rowDir of moveDirections) {
+  if (isKingPiece) {
+    // FLYING KING: can move any number of squares diagonally
+    // and capture by jumping over opponent piece, landing on any empty square beyond
+    
+    for (const rowDir of allDirections) {
+      for (const colDir of colDirections) {
+        let distance = 1;
+        let foundOpponent: Position | null = null;
+        
+        while (true) {
+          const newRow = row + rowDir * distance;
+          const newCol = col + colDir * distance;
+          
+          if (!isValidPosition(newRow, newCol)) break;
+          
+          const targetPiece = board[newRow][newCol];
+          
+          if (!targetPiece) {
+            // Empty square
+            if (foundOpponent) {
+              // We jumped over an opponent - this is a capture move
+              moves.push({
+                from: { row, col },
+                to: { row: newRow, col: newCol },
+                captured: foundOpponent,
+                isCapture: true,
+              });
+            } else if (!mustCapture) {
+              // Regular move (no capture required)
+              moves.push({
+                from: { row, col },
+                to: { row: newRow, col: newCol },
+                isCapture: false,
+              });
+            }
+          } else if (isOpponentPiece(targetPiece, player)) {
+            if (foundOpponent) {
+              // Already found one opponent in this direction, can't jump two
+              break;
+            }
+            // Found opponent piece - mark it for potential capture
+            foundOpponent = { row: newRow, col: newCol };
+          } else {
+            // Own piece - blocked
+            break;
+          }
+          
+          distance++;
+        }
+      }
+    }
+  } else {
+    // REGULAR PIECE: moves forward only, captures in both directions
+    
+    // Movement directions: white moves up (-1), black moves down (+1)
+    const moveDirections: number[] = player === "white" ? [-1] : [1];
+    
+    // Regular moves (only forward)
+    if (!mustCapture) {
+      for (const rowDir of moveDirections) {
+        for (const colDir of colDirections) {
+          const newRow = row + rowDir;
+          const newCol = col + colDir;
+          
+          if (!isValidPosition(newRow, newCol)) continue;
+          
+          const targetPiece = board[newRow][newCol];
+          
+          if (!targetPiece) {
+            moves.push({
+              from: { row, col },
+              to: { row: newRow, col: newCol },
+              isCapture: false,
+            });
+          }
+        }
+      }
+    }
+    
+    // Captures (in ALL directions - backwards capture allowed)
+    for (const rowDir of allDirections) {
       for (const colDir of colDirections) {
         const newRow = row + rowDir;
         const newCol = col + colDir;
@@ -108,40 +178,18 @@ const getValidMovesForPiece = (
         
         const targetPiece = board[newRow][newCol];
         
-        // Empty square - simple move
-        if (!targetPiece) {
-          moves.push({
-            from: { row, col },
-            to: { row: newRow, col: newCol },
-            isCapture: false,
-          });
-        }
-      }
-    }
-  }
-  
-  // Captures (in ALL directions for all pieces - backwards capture is allowed in standard checkers)
-  for (const rowDir of captureDirections) {
-    for (const colDir of colDirections) {
-      const newRow = row + rowDir;
-      const newCol = col + colDir;
-      
-      if (!isValidPosition(newRow, newCol)) continue;
-      
-      const targetPiece = board[newRow][newCol];
-      
-      // Opponent piece - check for capture
-      if (isOpponentPiece(targetPiece, player)) {
-        const jumpRow = newRow + rowDir;
-        const jumpCol = newCol + colDir;
-        
-        if (isValidPosition(jumpRow, jumpCol) && !board[jumpRow][jumpCol]) {
-          moves.push({
-            from: { row, col },
-            to: { row: jumpRow, col: jumpCol },
-            captured: { row: newRow, col: newCol },
-            isCapture: true,
-          });
+        if (isOpponentPiece(targetPiece, player)) {
+          const jumpRow = newRow + rowDir;
+          const jumpCol = newCol + colDir;
+          
+          if (isValidPosition(jumpRow, jumpCol) && !board[jumpRow][jumpCol]) {
+            moves.push({
+              from: { row, col },
+              to: { row: jumpRow, col: jumpCol },
+              captured: { row: newRow, col: newCol },
+              isCapture: true,
+            });
+          }
         }
       }
     }
