@@ -86,15 +86,42 @@ const getValidMovesForPiece = (
   const moves: Move[] = [];
   const isKingPiece = isKing(piece);
   
-  // Direction: white moves up (-1), black moves down (+1)
+  // Movement directions: white moves up (-1), black moves down (+1)
   // Kings can move in both directions
-  const directions: number[] = [];
-  if (player === "white" || isKingPiece) directions.push(-1);
-  if (player === "black" || isKingPiece) directions.push(1);
+  const moveDirections: number[] = [];
+  if (player === "white" || isKingPiece) moveDirections.push(-1);
+  if (player === "black" || isKingPiece) moveDirections.push(1);
+  
+  // Capture directions: ALL pieces can capture in BOTH directions (standard checkers rules)
+  const captureDirections: number[] = [-1, 1];
   
   const colDirections = [-1, 1];
   
-  for (const rowDir of directions) {
+  // Regular moves (only in movement directions)
+  if (!mustCapture) {
+    for (const rowDir of moveDirections) {
+      for (const colDir of colDirections) {
+        const newRow = row + rowDir;
+        const newCol = col + colDir;
+        
+        if (!isValidPosition(newRow, newCol)) continue;
+        
+        const targetPiece = board[newRow][newCol];
+        
+        // Empty square - simple move
+        if (!targetPiece) {
+          moves.push({
+            from: { row, col },
+            to: { row: newRow, col: newCol },
+            isCapture: false,
+          });
+        }
+      }
+    }
+  }
+  
+  // Captures (in ALL directions for all pieces - backwards capture is allowed in standard checkers)
+  for (const rowDir of captureDirections) {
     for (const colDir of colDirections) {
       const newRow = row + rowDir;
       const newCol = col + colDir;
@@ -102,15 +129,6 @@ const getValidMovesForPiece = (
       if (!isValidPosition(newRow, newCol)) continue;
       
       const targetPiece = board[newRow][newCol];
-      
-      // Empty square - simple move (only if not forced to capture)
-      if (!targetPiece && !mustCapture) {
-        moves.push({
-          from: { row, col },
-          to: { row: newRow, col: newCol },
-          isCapture: false,
-        });
-      }
       
       // Opponent piece - check for capture
       if (isOpponentPiece(targetPiece, player)) {
