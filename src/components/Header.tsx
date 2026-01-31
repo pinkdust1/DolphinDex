@@ -104,6 +104,20 @@ export const Header = () => {
               <span className="text-sm text-foreground">NFTs</span>
               </NavLink>
 
+              <NavLink 
+                to="/game" 
+                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
+                activeClassName="bg-accent"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                  <path d="M21 6H3C1.89543 6 1 6.89543 1 8V16C1 17.1046 1.89543 18 3 18H21C22.1046 18 23 17.1046 23 16V8C23 6.89543 22.1046 6 21 6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="8" cy="12" r="2" fill="currentColor"/>
+                  <path d="M15 10H17M16 9V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="19" cy="12" r="1" fill="hsl(var(--muted-foreground))"/>
+                </svg>
+                <span className="text-sm text-foreground">Game</span>
+              </NavLink>
+
               <NavigationDropdown
                 label="Token Hub"
                 icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-5 h-5">
@@ -114,7 +128,6 @@ export const Header = () => {
                   { title: "Markets", desc: "An accurate market index for all XRPL Tokens." },
                   { title: "IDO Launchpad", desc: "Launch your own project on the XRPL, issue tokens and raise funds." },
                   { title: "Airdrops", desc: "Track & Promote Community Airdrops" },
-                  { title: "Game", desc: "Explore gaming ecosystem and play-to-earn opportunities.", href: "/game" },
                 ]}
                 isOpen={activeDropdown === "token"}
                 onToggle={() => toggleDropdown("token")}
@@ -217,6 +230,15 @@ export const Header = () => {
                 NFTs
               </NavLink>
 
+              <NavLink 
+                to="/game" 
+                className="px-4 py-2 hover:bg-accent transition-colors"
+                activeClassName="bg-accent"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Game
+              </NavLink>
+
               {/* Token Hub Section */}
               <div className="px-4 py-2">
                 <p className="text-sm font-semibold text-muted-foreground mb-2">Token Hub</p>
@@ -230,13 +252,6 @@ export const Header = () => {
                   <a href="#" className="py-1.5 text-sm hover:text-primary transition-colors">
                     Airdrops
                   </a>
-                  <NavLink 
-                    to="/game" 
-                    className="py-1.5 text-sm hover:text-primary transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Game
-                  </NavLink>
                 </div>
               </div>
 
