@@ -110,12 +110,14 @@ const getValidMovesForPiece = (
             // Empty square
             if (foundOpponent) {
               // We jumped over an opponent - this is a capture move
+              // King can land on any empty square after the captured piece
               moves.push({
                 from: { row, col },
                 to: { row: newRow, col: newCol },
                 captured: foundOpponent,
                 isCapture: true,
               });
+              // Continue looking for more landing squares in this direction
             } else if (!mustCapture) {
               // Regular move (no capture required)
               moves.push({
@@ -126,13 +128,14 @@ const getValidMovesForPiece = (
             }
           } else if (isOpponentPiece(targetPiece, player)) {
             if (foundOpponent) {
-              // Already found one opponent in this direction, can't jump two
+              // Already found one opponent in this direction, can't jump two pieces
               break;
             }
             // Found opponent piece - mark it for potential capture
             foundOpponent = { row: newRow, col: newCol };
+            // Continue to check if there's an empty square to land on
           } else {
-            // Own piece - blocked
+            // Own piece - blocked completely
             break;
           }
           
