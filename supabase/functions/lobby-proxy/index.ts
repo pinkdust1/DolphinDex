@@ -9,6 +9,9 @@ const DIRECTUS_BASE_URL = "https://admin.asapcase.shop/items";
 const DIRECTUS_LOBBY_URL = `${DIRECTUS_BASE_URL}/loby_data`;
 const DIRECTUS_USER_WALLET_URL = `${DIRECTUS_BASE_URL}/user_wallet`;
 const DIRECTUS_GAME_SESSIONS_URL = `${DIRECTUS_BASE_URL}/game_sessions`;
+// Chess-specific collections
+const DIRECTUS_CHESS_LOBBY_URL = `${DIRECTUS_BASE_URL}/chess_loby_data`;
+const DIRECTUS_CHESS_SESSIONS_URL = `${DIRECTUS_BASE_URL}/chess_game_sessions`;
 
 // Mock data for demonstration when Directus is unavailable
 const MOCK_LOBBIES = [
@@ -569,6 +572,168 @@ serve(async (req) => {
 
       const updatedSession = await response.json();
       console.log("Game session updated:", updatedSession);
+
+      return new Response(
+        JSON.stringify({ success: true, data: updatedSession.data }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
+    // ==================== CHESS GAME SESSIONS ====================
+
+    // GET CHESS GAME SESSION action
+    if (body?.action === "get_chess_session") {
+      if (!directusToken) {
+        return new Response(
+          JSON.stringify({ error: "DIRECTUS_API_TOKEN not configured", success: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+
+      const { lobby_id } = body;
+      if (!lobby_id) {
+        return new Response(
+          JSON.stringify({ error: "Lobby ID is required", success: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        );
+      }
+
+      console.log("Getting chess game session for lobby:", lobby_id);
+
+      const response = await fetch(`${DIRECTUS_CHESS_SESSIONS_URL}?filter[lobby_id][_eq]=${lobby_id}`, {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${directusToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to get chess session:", errorText);
+        return new Response(
+          JSON.stringify({ error: "Failed to get chess session", success: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify({ success: true, data: data.data?.[0] || null }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
+    // CREATE CHESS GAME SESSION action
+    if (body?.action === "create_chess_session") {
+      if (!directusToken) {
+        return new Response(
+          JSON.stringify({ error: "DIRECTUS_API_TOKEN not configured", success: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+
+      const { lobby_id, player1_wallet, player2_wallet, game_state } = body;
+      
+      if (!lobby_id || !player1_wallet) {
+        return new Response(
+          JSON.stringify({ error: "Lobby ID and player1 wallet are required", success: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        );
+      }
+
+      console.log("Creating chess session:", { lobby_id, player1_wallet, player2_wallet });
+
+      const sessionData = {
+        lobby_id,
+        player1_wallet,
+        player2_wallet: player2_wallet || null,
+        game_state: game_state || null,
+        current_turn: "white",
+        game_status: "playing",
+        winner: null,
+        last_move_at: new Date().toISOString(),
+      };
+
+      const response = await fetch(DIRECTUS_CHESS_SESSIONS_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${directusToken}`,
+        },
+        body: JSON.stringify(sessionData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to create chess session:", errorText);
+        return new Response(
+          JSON.stringify({ error: "Failed to create chess session", success: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+
+      const newSession = await response.json();
+      console.log("Chess session created:", newSession);
+
+      return new Response(
+        JSON.stringify({ success: true, data: newSession.data }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
+    // UPDATE CHESS GAME SESSION action
+    if (body?.action === "update_chess_session") {
+      if (!directusToken) {
+        return new Response(
+          JSON.stringify({ error: "DIRECTUS_API_TOKEN not configured", success: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+
+      const { session_id, game_state, current_turn, game_status, winner, player2_wallet } = body;
+      
+      if (!session_id) {
+        return new Response(
+          JSON.stringify({ error: "Session ID is required", success: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        );
+      }
+
+      console.log("Updating chess session:", session_id);
+
+      const updateData: Record<string, unknown> = {
+        last_move_at: new Date().toISOString(),
+      };
+      
+      if (game_state !== undefined) updateData.game_state = game_state;
+      if (current_turn !== undefined) updateData.current_turn = current_turn;
+      if (game_status !== undefined) updateData.game_status = game_status;
+      if (winner !== undefined) updateData.winner = winner;
+      if (player2_wallet !== undefined) updateData.player2_wallet = player2_wallet;
+
+      const response = await fetch(`${DIRECTUS_CHESS_SESSIONS_URL}/${session_id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${directusToken}`,
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to update chess session:", errorText);
+        return new Response(
+          JSON.stringify({ error: "Failed to update chess session", success: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+
+      const updatedSession = await response.json();
+      console.log("Chess session updated:", updatedSession);
 
       return new Response(
         JSON.stringify({ success: true, data: updatedSession.data }),
