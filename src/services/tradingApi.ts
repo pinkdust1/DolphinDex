@@ -69,7 +69,7 @@ async function fetchFromProxy<T>(endpoint: string, params: Record<string, string
 export const tradingApi = {
   async getTokens(interval: TimeInterval = '1h'): Promise<Token[]> {
     try {
-      const rawData = await fetchFromProxy<unknown>('tokens', { interval });
+      const rawData = await fetchFromProxy<unknown>('tokens', { interval, limit: '200' });
       
       // Handle different API response formats
       const data = Array.isArray(rawData) ? rawData : 
@@ -80,11 +80,10 @@ export const tradingApi = {
 
       if (!Array.isArray(data) || data.length === 0) {
         console.warn('No tokens data received, using fallback');
-        return [
-          { symbol: 'RLUSD', name: 'Ripple USD', price: 0.4691, change24h: -1.2, volume24h: 2600000, icon: '💵', base: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De_524C555344000000000000000000000000000000' },
-        ];
+        return generateMockTokens();
       }
 
+      // Less aggressive filtering - include tokens with any activity
       const filtered = (data as Array<{
         base: string;
         counter: string;
@@ -95,8 +94,8 @@ export const tradingApi = {
         low24h: number;
         exchanges: number;
       }>)
-        .filter(item => item && item.counter === 'XRP' && item.price > 0 && item.volume24h > 0)
-        .sort((a, b) => b.volume24h - a.volume24h);
+        .filter(item => item && item.counter === 'XRP')
+        .sort((a, b) => (b.volume24h || 0) - (a.volume24h || 0));
 
       const rlusdRaw = filtered.find(item => 
         item.base === 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De_524C555344000000000000000000000000000000'
@@ -109,9 +108,9 @@ export const tradingApi = {
           symbol: known?.symbol ?? symbol,
           name: known?.name ?? symbol,
           icon: known?.icon,
-          price: item.price,
-          change24h: item.change24h,
-          volume24h: item.volume24h,
+          price: item.price || 0,
+          change24h: item.change24h || 0,
+          volume24h: item.volume24h || 0,
           high24h: item.high24h,
           low24h: item.low24h,
           base: item.base,
@@ -122,7 +121,7 @@ export const tradingApi = {
       if (rlusdRaw) tokens.push(buildToken(rlusdRaw));
 
       for (const item of filtered) {
-        if (tokens.length >= 50) break;
+        if (tokens.length >= 200) break; // Increased limit to 200
         if (rlusdRaw && item.base === rlusdRaw.base) continue;
         tokens.push(buildToken(item));
       }
