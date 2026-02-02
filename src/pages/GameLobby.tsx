@@ -60,7 +60,8 @@ const GameLobby = () => {
       }
       setError(null);
       
-      const data = await fetchLobbies();
+      // Fetch lobbies filtered by game type
+      const data = await fetchLobbies(gameId);
       setLobbies(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to load lobbies";
@@ -70,7 +71,7 @@ const GameLobby = () => {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [gameId]);
 
   useEffect(() => {
     loadLobbies();

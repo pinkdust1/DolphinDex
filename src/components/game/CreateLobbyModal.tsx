@@ -108,7 +108,7 @@ export const CreateLobbyModal = ({
     setErrorMessage("");
 
     try {
-      const result = await createLobby(walletAddress, amount);
+      const result = await createLobby(walletAddress, amount, gameId);
       
       if (!result.success) {
         setErrorMessage(result.error || "Failed to create lobby");
