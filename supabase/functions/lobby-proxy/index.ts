@@ -19,7 +19,9 @@ const MOCK_LOBBIES = [
     player2: null,
     cost: "10 XRP",
     lobby_status: "free",
-    start_time: "14:00"
+    start_time: "14:00",
+    game_type: "checkers",
+    date_created: new Date().toISOString()
   },
   {
     id: 2,
@@ -28,7 +30,9 @@ const MOCK_LOBBIES = [
     player2: "rN7n3473SaZBCG4dFL83w7a1RXtXtbK2D9",
     cost: "25 XRP",
     lobby_status: "busy",
-    start_time: "14:30"
+    start_time: "14:30",
+    game_type: "checkers",
+    date_created: new Date(Date.now() - 3600000).toISOString()
   },
   {
     id: 3,
@@ -37,7 +41,9 @@ const MOCK_LOBBIES = [
     player2: null,
     cost: "5 XRP",
     lobby_status: "free",
-    start_time: "15:00"
+    start_time: "15:00",
+    game_type: "chess",
+    date_created: new Date(Date.now() - 7200000).toISOString()
   },
   {
     id: 4,
@@ -46,7 +52,9 @@ const MOCK_LOBBIES = [
     player2: null,
     cost: "50 XRP",
     lobby_status: "waiting",
-    start_time: "15:30"
+    start_time: "15:30",
+    game_type: "durak",
+    date_created: new Date(Date.now() - 1800000).toISOString()
   },
   {
     id: 5,
@@ -55,7 +63,9 @@ const MOCK_LOBBIES = [
     player2: "rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf",
     cost: "100 XRP",
     lobby_status: "busy",
-    start_time: "16:00"
+    start_time: "16:00",
+    game_type: "chess",
+    date_created: new Date(Date.now() - 10800000).toISOString()
   }
 ];
 
@@ -229,7 +239,7 @@ serve(async (req) => {
         );
       }
 
-      const { player1, cost } = body;
+      const { player1, cost, game_type } = body;
       
       if (!player1) {
         return new Response(
@@ -259,7 +269,9 @@ serve(async (req) => {
         player2: null,
         cost: costValue === 0 ? "Free" : `${costValue} XRP`,
         lobby_status: "free",
-        start_time: getCurrentTime()
+        start_time: getCurrentTime(),
+        game_type: game_type || "checkers",
+        date_created: new Date().toISOString()
       };
 
       console.log("Creating lobby in Directus:", lobbyData);

@@ -9,6 +9,8 @@ export interface LobbyData {
   cost: string;
   lobby_status: string;
   start_time: string;
+  game_type?: string;
+  date_created?: string;
 }
 
 interface DirectusResponse {
@@ -28,23 +30,41 @@ interface JoinLobbyResponse {
   error?: string;
 }
 
-export async function fetchLobbies(): Promise<LobbyData[]> {
-  const { data: funcData, error } = await supabase.functions.invoke("lobby-proxy");
+export async function fetchLobbies(gameType?: string): Promise<LobbyData[]> {
+  const { data: funcData, error } = await supabase.functions.invoke("lobby-proxy", {
+    body: gameType ? { game_type: gameType } : undefined
+  });
   
   if (error) {
     throw new Error(`Failed to fetch lobbies: ${error.message}`);
   }
   
   const result = funcData as DirectusResponse;
-  return result.data || [];
+  let lobbies = result.data || [];
+  
+  // Filter by game type if specified
+  if (gameType) {
+    lobbies = lobbies.filter(lobby => lobby.game_type === gameType);
+  }
+  
+  // Sort by date_created or id descending (newest first)
+  lobbies.sort((a, b) => {
+    if (a.date_created && b.date_created) {
+      return new Date(b.date_created).getTime() - new Date(a.date_created).getTime();
+    }
+    return b.id - a.id;
+  });
+  
+  return lobbies;
 }
 
-export async function createLobby(player1: string, cost: number): Promise<CreateLobbyResponse> {
+export async function createLobby(player1: string, cost: number, gameType: string = "checkers"): Promise<CreateLobbyResponse> {
   const { data, error } = await supabase.functions.invoke("lobby-proxy", {
     body: {
       action: "create_lobby",
       player1,
-      cost
+      cost,
+      game_type: gameType
     }
   });
   
