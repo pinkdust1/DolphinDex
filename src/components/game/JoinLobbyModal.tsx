@@ -63,7 +63,7 @@ export const JoinLobbyModal = ({
     setErrorMessage("");
 
     try {
-      const result = await joinLobby(lobby.id, walletAddress);
+      const result = await joinLobby(lobby.id, walletAddress, gameId);
       
       if (!result.success) {
         setErrorMessage(result.error || "Failed to join lobby");
