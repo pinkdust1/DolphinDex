@@ -43,8 +43,12 @@ export async function fetchLobbies(gameType?: string): Promise<LobbyData[]> {
   let lobbies = result.data || [];
   
   // Filter by game type if specified
+  // If game_type is not set in lobby data, treat it as "checkers" for backward compatibility
   if (gameType) {
-    lobbies = lobbies.filter(lobby => lobby.game_type === gameType);
+    lobbies = lobbies.filter(lobby => {
+      const lobbyGameType = lobby.game_type || "checkers";
+      return lobbyGameType === gameType;
+    });
   }
   
   // Sort by date_created or id descending (newest first)
@@ -52,6 +56,7 @@ export async function fetchLobbies(gameType?: string): Promise<LobbyData[]> {
     if (a.date_created && b.date_created) {
       return new Date(b.date_created).getTime() - new Date(a.date_created).getTime();
     }
+    // Fallback: sort by id descending (higher id = newer)
     return b.id - a.id;
   });
   
