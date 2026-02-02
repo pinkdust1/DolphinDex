@@ -4,11 +4,16 @@ import { Header } from "@/components/Header";
 import { CheckersBoard } from "@/components/game/checkers/CheckersBoard";
 import { GameControls } from "@/components/game/checkers/GameControls";
 import { GameOverDialog } from "@/components/game/checkers/GameOverDialog";
+import { ChessBoard } from "@/components/game/chess/ChessBoard";
+import { ChessControls } from "@/components/game/chess/ChessControls";
+import { ChessGameOverDialog } from "@/components/game/chess/ChessGameOverDialog";
+import { PromotionDialog } from "@/components/game/chess/PromotionDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, Coins, Loader2 } from "lucide-react";
+import { ArrowLeft, Users, Loader2 } from "lucide-react";
 import { useMultiplayerCheckers } from "@/hooks/useMultiplayerCheckers";
+import { useMultiplayerChess } from "@/hooks/useMultiplayerChess";
 import { formatWalletAddress } from "@/services/lobbyApi";
 
 const gameNames: Record<string, string> = {
@@ -24,38 +29,52 @@ const GamePlay = () => {
   // Get connected wallet from localStorage
   const [playerWallet] = useState(() => localStorage.getItem("xaman_account") || "");
   
-  const {
-    gameState,
-    playerColor,
-    isLoading,
-    isMyTurn,
-    lobbyData,
-    handleCellClick,
-    resetGame,
-    surrender,
-  } = useMultiplayerCheckers({
+  // Checkers hook
+  const checkersGame = useMultiplayerCheckers({
+    lobbyId: lobbyId || "",
+    playerWallet,
+  });
+
+  // Chess hook
+  const chessGame = useMultiplayerChess({
     lobbyId: lobbyId || "",
     playerWallet,
   });
   
   const [showGameOver, setShowGameOver] = useState(false);
+  const [showChessGameOver, setShowChessGameOver] = useState(false);
 
   const gameName = gameId ? gameNames[gameId] || gameId : "Game";
 
-  // Show game over dialog when game ends
+  // Show game over dialog when checkers game ends
   useEffect(() => {
-    if (gameState.gameOver) {
+    if (gameId === "checkers" && checkersGame.gameState.gameOver) {
       setShowGameOver(true);
     }
-  }, [gameState.gameOver]);
+  }, [gameId, checkersGame.gameState.gameOver]);
 
-  const handlePlayAgain = () => {
-    resetGame();
+  // Show game over dialog when chess game ends
+  useEffect(() => {
+    if (gameId === "chess" && chessGame.gameState.gameOver) {
+      setShowChessGameOver(true);
+    }
+  }, [gameId, chessGame.gameState.gameOver]);
+
+  const handleCheckersPlayAgain = () => {
+    checkersGame.resetGame();
     setShowGameOver(false);
   };
 
-  // Only show checkers for now
-  if (gameId !== "checkers") {
+  const handleChessPlayAgain = () => {
+    chessGame.resetGame();
+    setShowChessGameOver(false);
+  };
+
+  // Determine loading state based on game type
+  const isLoading = gameId === "chess" ? chessGame.isLoading : checkersGame.isLoading;
+
+  // Only show supported games
+  if (gameId !== "checkers" && gameId !== "chess") {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -89,6 +108,13 @@ const GamePlay = () => {
       </div>
     );
   }
+
+  // Get values based on game type
+  const isChess = gameId === "chess";
+  const playerColor = isChess ? chessGame.playerColor : checkersGame.playerColor;
+  const isMyTurn = isChess ? chessGame.isMyTurn : checkersGame.isMyTurn;
+  const lobbyData = isChess ? chessGame.lobbyData : checkersGame.lobbyData;
+  const gameOver = isChess ? chessGame.gameState.gameOver : checkersGame.gameState.gameOver;
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,37 +168,75 @@ const GamePlay = () => {
             </Card>
 
             {/* Turn indicator */}
-            {!gameState.gameOver && (
+            {!gameOver && (
               <div className={`text-center py-2 px-4 rounded-lg ${isMyTurn ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                 {isMyTurn ? "🎯 Your turn - make your move!" : "⏳ Waiting for opponent's move..."}
               </div>
             )}
 
-            {/* Game board */}
-            <CheckersBoard
-              gameState={gameState}
-              onCellClick={handleCellClick}
-              flipped={playerColor === "black"}
-            />
+            {/* Game board - Chess */}
+            {isChess && (
+              <>
+                <ChessBoard
+                  gameState={chessGame.gameState}
+                  onCellClick={chessGame.handleCellClick}
+                  flipped={playerColor === "black"}
+                />
+                <ChessControls
+                  gameState={chessGame.gameState}
+                  onReset={chessGame.resetGame}
+                  onSurrender={chessGame.surrender}
+                  playerColor={playerColor || "white"}
+                />
+              </>
+            )}
 
-            {/* Controls */}
-            <GameControls
-              gameState={gameState}
-              onReset={resetGame}
-              onSurrender={surrender}
-              playerColor={playerColor || "white"}
-            />
+            {/* Game board - Checkers */}
+            {!isChess && (
+              <>
+                <CheckersBoard
+                  gameState={checkersGame.gameState}
+                  onCellClick={checkersGame.handleCellClick}
+                  flipped={playerColor === "black"}
+                />
+                <GameControls
+                  gameState={checkersGame.gameState}
+                  onReset={checkersGame.resetGame}
+                  onSurrender={checkersGame.surrender}
+                  playerColor={playerColor || "white"}
+                />
+              </>
+            )}
           </div>
         </div>
       </main>
 
-      {/* Game over dialog */}
+      {/* Checkers game over dialog */}
       <GameOverDialog
         open={showGameOver}
-        winner={gameState.winner}
-        onPlayAgain={handlePlayAgain}
+        winner={checkersGame.gameState.winner}
+        onPlayAgain={handleCheckersPlayAgain}
         onClose={() => setShowGameOver(false)}
       />
+
+      {/* Chess game over dialog */}
+      <ChessGameOverDialog
+        open={showChessGameOver}
+        winner={chessGame.gameState.winner}
+        isCheckmate={chessGame.gameState.isCheckmate}
+        onPlayAgain={handleChessPlayAgain}
+        onClose={() => setShowChessGameOver(false)}
+      />
+
+      {/* Chess promotion dialog */}
+      {chessGame.gameState.promotionPending && (
+        <PromotionDialog
+          open={true}
+          player={chessGame.gameState.currentPlayer}
+          onSelect={chessGame.selectPromotion}
+          onClose={() => {}}
+        />
+      )}
     </div>
   );
 };
