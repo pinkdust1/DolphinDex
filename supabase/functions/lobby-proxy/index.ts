@@ -755,7 +755,8 @@ serve(async (req) => {
 
     console.log("Fetching lobby data from Directus with token...");
     
-    const response = await fetch(DIRECTUS_LOBBY_URL, {
+    // Request all fields including game_type and date_created for proper filtering and sorting
+    const response = await fetch(`${DIRECTUS_LOBBY_URL}?fields=*&sort=-date_created`, {
       method: "GET",
       headers: {
         "Accept": "application/json",
