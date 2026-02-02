@@ -17,6 +17,8 @@ const ALLOWED_ENDPOINTS = [
   'pairs',
   'markets',
   'stats',
+  'exchanges',
+  'tokens',
 ];
 
 // Maximum allowed limit parameter
