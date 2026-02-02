@@ -57,10 +57,14 @@ const Trade = () => {
     return () => window.clearInterval(refreshTimer);
   }, [selectedToken, interval]);
 
-  const handlePairChange = (pair: { base: string; quote: string }) => {
-    const token = tokens.find(t => t.symbol === pair.base);
+  const handlePairChange = (pair: { base: string; quote: string }, token?: Token) => {
     if (token) {
       setSelectedToken(token);
+    } else {
+      const foundToken = tokens.find(t => t.symbol === pair.base);
+      if (foundToken) {
+        setSelectedToken(foundToken);
+      }
     }
   };
 
