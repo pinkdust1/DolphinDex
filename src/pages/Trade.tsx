@@ -13,7 +13,7 @@ import { tradingApi } from "@/services/tradingApi";
 const Trade = () => {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
-  const [interval, setInterval] = useState<TimeInterval>("1h");
+  const [interval, setInterval] = useState<TimeInterval>("1m");
   const [ohlc, setOhlc] = useState<OHLCData[]>([]);
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
   const [trades, setTrades] = useState<TradeType[]>([]);
@@ -66,6 +66,7 @@ const Trade = () => {
         setSelectedToken(foundToken);
       }
     }
+    setInterval("1m"); // Reset to 1m chart when changing pair
   };
 
   if (isLoading) {
