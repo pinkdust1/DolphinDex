@@ -266,6 +266,11 @@ serve(async (req) => {
         );
       }
 
+      const gameType = game_type || "checkers";
+      
+      // Use different collection based on game type
+      const lobbyUrl = gameType === "chess" ? DIRECTUS_CHESS_LOBBY_URL : DIRECTUS_LOBBY_URL;
+
       const lobbyData = {
         id_lobby: generateLobbyId(),
         player1: player1,
@@ -273,13 +278,13 @@ serve(async (req) => {
         cost: costValue === 0 ? "Free" : `${costValue} XRP`,
         lobby_status: "free",
         start_time: getCurrentTime(),
-        game_type: game_type || "checkers",
+        game_type: gameType,
         date_created: new Date().toISOString()
       };
 
-      console.log("Creating lobby in Directus:", lobbyData);
+      console.log(`Creating ${gameType} lobby in Directus:`, lobbyData, "URL:", lobbyUrl);
 
-      const createResponse = await fetch(DIRECTUS_LOBBY_URL, {
+      const createResponse = await fetch(lobbyUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -325,7 +330,7 @@ serve(async (req) => {
         );
       }
 
-      const { lobby_id, player2 } = body;
+      const { lobby_id, player2, game_type } = body;
       
       if (!lobby_id || !player2) {
         return new Response(
@@ -337,10 +342,14 @@ serve(async (req) => {
         );
       }
 
-      console.log("Joining lobby:", { lobby_id, player2 });
+      // Use different collection based on game type
+      const gameType = game_type || "checkers";
+      const lobbyUrl = gameType === "chess" ? DIRECTUS_CHESS_LOBBY_URL : DIRECTUS_LOBBY_URL;
+
+      console.log("Joining lobby:", { lobby_id, player2, gameType, lobbyUrl });
 
       // First, check if lobby exists and is free
-      const checkResponse = await fetch(`${DIRECTUS_LOBBY_URL}/${lobby_id}`, {
+      const checkResponse = await fetch(`${lobbyUrl}/${lobby_id}`, {
         method: "GET",
         headers: {
           "Accept": "application/json",
@@ -382,7 +391,7 @@ serve(async (req) => {
       }
 
       // Update lobby with player2 and set status to busy
-      const updateResponse = await fetch(`${DIRECTUS_LOBBY_URL}/${lobby_id}`, {
+      const updateResponse = await fetch(`${lobbyUrl}/${lobby_id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -742,10 +751,17 @@ serve(async (req) => {
     }
 
     // Default action: fetch lobbies
+    // Check if game_type is specified to fetch from correct collection
+    const requestedGameType = body?.game_type;
+    
     if (!directusToken) {
       console.warn("DIRECTUS_API_TOKEN not configured, using mock data");
+      // Filter mock data by game type if specified
+      const filteredMock = requestedGameType 
+        ? MOCK_LOBBIES.filter(l => l.game_type === requestedGameType)
+        : MOCK_LOBBIES;
       return new Response(
-        JSON.stringify({ data: MOCK_LOBBIES, isMock: true }),
+        JSON.stringify({ data: filteredMock, isMock: true }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200 
@@ -753,10 +769,16 @@ serve(async (req) => {
       );
     }
 
-    console.log("Fetching lobby data from Directus with token...");
+    // Use different collection based on game type
+    const lobbyUrl = requestedGameType === "chess" ? DIRECTUS_CHESS_LOBBY_URL : DIRECTUS_LOBBY_URL;
     
-    // Request all fields including game_type and date_created for proper filtering and sorting
-    const response = await fetch(`${DIRECTUS_LOBBY_URL}?fields=*&sort=-date_created`, {
+    // Chess collection has date_created field for sorting, checkers doesn't
+    const sortParam = requestedGameType === "chess" ? "&sort=-date_created" : "&sort=-id";
+    
+    console.log(`Fetching ${requestedGameType || 'all'} lobby data from Directus:`, lobbyUrl);
+    
+    // Request all fields
+    const response = await fetch(`${lobbyUrl}?fields=*${sortParam}`, {
       method: "GET",
       headers: {
         "Accept": "application/json",
@@ -772,8 +794,11 @@ serve(async (req) => {
       
       // Return mock data on Directus failure
       console.log("Falling back to mock data due to Directus error");
+      const filteredMock = requestedGameType 
+        ? MOCK_LOBBIES.filter(l => l.game_type === requestedGameType)
+        : MOCK_LOBBIES;
       return new Response(
-        JSON.stringify({ data: MOCK_LOBBIES, isMock: true, reason: "Directus unavailable" }),
+        JSON.stringify({ data: filteredMock, isMock: true, reason: "Directus unavailable" }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200 
@@ -782,7 +807,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log("Directus data received successfully");
+    console.log("Directus data received successfully, count:", data.data?.length || 0);
 
     return new Response(
       JSON.stringify({ ...data, isMock: false }),

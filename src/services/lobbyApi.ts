@@ -42,16 +42,8 @@ export async function fetchLobbies(gameType?: string): Promise<LobbyData[]> {
   const result = funcData as DirectusResponse;
   let lobbies = result.data || [];
   
-  // Filter by game type if specified
-  // If game_type is not set in lobby data, treat it as "checkers" for backward compatibility
-  if (gameType) {
-    lobbies = lobbies.filter(lobby => {
-      const lobbyGameType = lobby.game_type || "checkers";
-      return lobbyGameType === gameType;
-    });
-  }
-  
   // Sort by date_created or id descending (newest first)
+  // Server should already sort, but ensure client-side as fallback
   lobbies.sort((a, b) => {
     if (a.date_created && b.date_created) {
       return new Date(b.date_created).getTime() - new Date(a.date_created).getTime();
@@ -80,12 +72,13 @@ export async function createLobby(player1: string, cost: number, gameType: strin
   return data as CreateLobbyResponse;
 }
 
-export async function joinLobby(lobbyId: number, player2: string): Promise<JoinLobbyResponse> {
+export async function joinLobby(lobbyId: number, player2: string, gameType: string = "checkers"): Promise<JoinLobbyResponse> {
   const { data, error } = await supabase.functions.invoke("lobby-proxy", {
     body: {
       action: "join_lobby",
       lobby_id: lobbyId,
-      player2
+      player2,
+      game_type: gameType
     }
   });
   
