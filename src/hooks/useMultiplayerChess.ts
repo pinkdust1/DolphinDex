@@ -117,6 +117,27 @@ export const useMultiplayerChess = ({ lobbyId, playerWallet }: UseMultiplayerChe
     }
   }, [sessionId]);
 
+  // Join as player2 - needs sessionId
+  const joinAsPlayer2 = useCallback(async (sessionId: number) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("lobby-proxy", {
+        body: {
+          action: "update_chess_session",
+          session_id: sessionId,
+          player2_wallet: playerWallet
+        }
+      });
+
+      if (error) {
+        console.error("Error joining as player2:", error);
+      }
+      return data?.data as ChessGameSessionData | null;
+    } catch (err) {
+      console.error("Error in joinAsPlayer2:", err);
+      return null;
+    }
+  }, [playerWallet]);
+
   // Initialize game session
   useEffect(() => {
     const initSession = async () => {
@@ -129,23 +150,27 @@ export const useMultiplayerChess = ({ lobbyId, playerWallet }: UseMultiplayerChe
         session = await createGameSession(playerWallet, null);
         if (session) {
           setPlayerColor("white");
+          setSessionId(session.id);
         }
       } else {
         // Session exists, determine player color
+        setSessionId(session.id);
+        
         if (session.player1_wallet === playerWallet) {
           setPlayerColor("white");
         } else if (session.player2_wallet === playerWallet) {
           setPlayerColor("black");
         } else if (!session.player2_wallet) {
-          // Join as player2 (black)
-          await updateGameSession({ player2_wallet: playerWallet });
-          session.player2_wallet = playerWallet;
+          // Join as player2 (black) - use direct call with session.id
+          const updatedSession = await joinAsPlayer2(session.id);
+          if (updatedSession) {
+            session = updatedSession;
+          }
           setPlayerColor("black");
         }
       }
 
       if (session) {
-        setSessionId(session.id);
         setLobbyData({
           player1_wallet: session.player1_wallet,
           player2_wallet: session.player2_wallet
@@ -162,7 +187,7 @@ export const useMultiplayerChess = ({ lobbyId, playerWallet }: UseMultiplayerChe
     };
 
     initSession();
-  }, [lobbyId, playerWallet, fetchGameSession, createGameSession, updateGameSession]);
+  }, [lobbyId, playerWallet, fetchGameSession, createGameSession, joinAsPlayer2]);
 
   // Polling for game state updates
   useEffect(() => {

@@ -25,7 +25,8 @@ const pieceSymbols: Record<string, string> = {
 export const ChessPiece = ({ piece, isSelected }: ChessPieceProps) => {
   if (!piece) return null;
 
-  const isWhite = piece === piece.toUpperCase();
+  // Check if piece is white (uppercase letters)
+  const isWhite = piece === piece.toUpperCase() && piece !== piece.toLowerCase();
   const symbol = pieceSymbols[piece] || "";
 
   return (
@@ -33,7 +34,9 @@ export const ChessPiece = ({ piece, isSelected }: ChessPieceProps) => {
       className={cn(
         "w-[85%] h-[85%] flex items-center justify-center",
         "text-4xl sm:text-5xl select-none transition-all duration-200",
-        isWhite ? "text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]" : "text-gray-900 drop-shadow-[0_1px_1px_rgba(255,255,255,0.3)]",
+        isWhite 
+          ? "text-white drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)]" 
+          : "text-gray-900 drop-shadow-[0_1px_2px_rgba(255,255,255,0.4)]",
         isSelected && "scale-110 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]"
       )}
     >
