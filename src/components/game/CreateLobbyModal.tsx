@@ -42,7 +42,8 @@ export const CreateLobbyModal = ({
     if (state === "waiting" && createdLobby) {
       const pollForPlayer2 = async () => {
         try {
-          const lobbies = await fetchLobbies();
+          // Fetch lobbies for the specific game type to get the correct collection
+          const lobbies = await fetchLobbies(gameId);
           const updatedLobby = lobbies.find(l => l.id === createdLobby.id);
           
           if (updatedLobby && updatedLobby.player2) {

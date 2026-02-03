@@ -6,13 +6,14 @@ interface ChessPieceProps {
   isSelected: boolean;
 }
 
+// Use filled symbols for all pieces - white pieces get white color, black pieces get dark color
 const pieceSymbols: Record<string, string> = {
-  K: "♔",
-  Q: "♕",
-  R: "♖",
-  B: "♗",
-  N: "♘",
-  P: "♙",
+  K: "♚",
+  Q: "♛",
+  R: "♜",
+  B: "♝",
+  N: "♞",
+  P: "♟",
   k: "♚",
   q: "♛",
   r: "♜",
