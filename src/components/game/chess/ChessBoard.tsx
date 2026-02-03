@@ -90,8 +90,8 @@ export const ChessBoard = ({ gameState, onCellClick, flipped = false }: ChessBoa
                     "aspect-square flex items-center justify-center relative cursor-pointer",
                     "transition-colors duration-150",
                     isDark
-                      ? "bg-emerald-700 dark:bg-emerald-800"
-                      : "bg-emerald-100 dark:bg-emerald-200",
+                      ? "bg-amber-800 dark:bg-amber-900"
+                      : "bg-amber-100 dark:bg-amber-200",
                     selected && "ring-4 ring-inset ring-primary",
                     lastMove && "bg-yellow-400/50 dark:bg-yellow-500/40",
                     kingCheck && "bg-red-500/60 dark:bg-red-600/60"
