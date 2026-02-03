@@ -37,7 +37,9 @@ export const ChessBoard = ({ gameState, onCellClick, flipped = false }: ChessBoa
   };
 
   // Get rows and cols based on flip state
-  const rows = flipped ? [...Array(8).keys()] : [...Array(8).keys()].reverse();
+  // When not flipped (white's view): row 0 at top, row 7 at bottom (white pieces closest to player)
+  // When flipped (black's view): row 7 at top, row 0 at bottom (black pieces closest to player)
+  const rows = flipped ? [...Array(8).keys()].reverse() : [...Array(8).keys()];
   const cols = flipped ? [...Array(8).keys()].reverse() : [...Array(8).keys()];
 
   // File and rank labels
