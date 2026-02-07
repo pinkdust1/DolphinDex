@@ -284,10 +284,16 @@ async function updateLobbyCollection(
   }
 }
 
-// Verify transaction on XRPL
+// Sleep helper
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Verify transaction on XRPL with retries
 async function verifyXrplTransaction(txHash: string, expectedAmount: number, expectedSender: string): Promise<{
   verified: boolean;
   error?: string;
+  pending?: boolean;
   txData?: {
     sender: string;
     destination: string;
@@ -296,79 +302,114 @@ async function verifyXrplTransaction(txHash: string, expectedAmount: number, exp
     validated: boolean;
   };
 }> {
-  try {
-    const response = await fetch(XRPL_NODE, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        method: 'tx',
-        params: [{
-          transaction: txHash,
-          binary: false
-        }]
-      })
-    });
+  const MAX_RETRIES = 10;
+  const RETRY_DELAY_MS = 3000; // 3 seconds between retries
 
-    if (!response.ok) {
-      return { verified: false, error: 'Failed to fetch transaction from XRPL' };
-    }
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      console.log(`XRPL verification attempt ${attempt}/${MAX_RETRIES} for tx: ${txHash}`);
+      
+      const response = await fetch(XRPL_NODE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          method: 'tx',
+          params: [{
+            transaction: txHash,
+            binary: false
+          }]
+        })
+      });
 
-    const data = await response.json();
-    
-    if (data.result.status !== 'success' || !data.result.validated) {
-      return { verified: false, error: 'Transaction not validated on XRPL' };
-    }
-
-    const tx = data.result;
-    
-    // Check transaction type
-    if (tx.TransactionType !== 'Payment') {
-      return { verified: false, error: 'Invalid transaction type' };
-    }
-
-    // Check destination
-    if (tx.Destination !== ESCROW_WALLET) {
-      return { verified: false, error: 'Invalid destination address' };
-    }
-
-    // Check sender
-    if (tx.Account !== expectedSender) {
-      return { verified: false, error: 'Sender address does not match' };
-    }
-
-    // Check amount (in drops)
-    const expectedDrops = xrpToDrops(expectedAmount);
-    const actualAmount = typeof tx.Amount === 'string' ? tx.Amount : tx.Amount?.value;
-    
-    if (actualAmount !== expectedDrops) {
-      return { 
-        verified: false, 
-        error: `Amount mismatch: expected ${expectedDrops} drops, got ${actualAmount}` 
-      };
-    }
-
-    // Check transaction result
-    if (tx.meta?.TransactionResult !== 'tesSUCCESS') {
-      return { 
-        verified: false, 
-        error: `Transaction failed: ${tx.meta?.TransactionResult}` 
-      };
-    }
-
-    return {
-      verified: true,
-      txData: {
-        sender: tx.Account,
-        destination: tx.Destination,
-        amount: actualAmount,
-        status: tx.meta?.TransactionResult,
-        validated: tx.validated
+      if (!response.ok) {
+        console.error(`XRPL node returned status ${response.status}`);
+        if (attempt < MAX_RETRIES) {
+          await sleep(RETRY_DELAY_MS);
+          continue;
+        }
+        return { verified: false, error: 'Failed to fetch transaction from XRPL' };
       }
-    };
-  } catch (error) {
-    console.error('Error verifying transaction:', error);
-    return { verified: false, error: 'Failed to verify transaction' };
+
+      const data = await response.json();
+      
+      // If transaction not found yet, retry
+      if (data.result?.error === 'txnNotFound') {
+        console.log(`Transaction not found yet, retrying... (attempt ${attempt})`);
+        if (attempt < MAX_RETRIES) {
+          await sleep(RETRY_DELAY_MS);
+          continue;
+        }
+        return { verified: false, pending: true, error: 'Transaction not yet in ledger, please wait' };
+      }
+
+      // If not validated yet, wait and retry
+      if (data.result.status !== 'success' || !data.result.validated) {
+        console.log(`Transaction not validated yet (attempt ${attempt}), status: ${data.result.status}, validated: ${data.result.validated}`);
+        if (attempt < MAX_RETRIES) {
+          await sleep(RETRY_DELAY_MS);
+          continue;
+        }
+        return { verified: false, pending: true, error: 'Transaction not validated on XRPL yet' };
+      }
+
+      const tx = data.result;
+      
+      // Check transaction type
+      if (tx.TransactionType !== 'Payment') {
+        return { verified: false, error: 'Invalid transaction type' };
+      }
+
+      // Check destination
+      if (tx.Destination !== ESCROW_WALLET) {
+        return { verified: false, error: 'Invalid destination address' };
+      }
+
+      // Check sender
+      if (tx.Account !== expectedSender) {
+        return { verified: false, error: 'Sender address does not match' };
+      }
+
+      // Check amount (in drops)
+      const expectedDrops = xrpToDrops(expectedAmount);
+      const actualAmount = typeof tx.Amount === 'string' ? tx.Amount : tx.Amount?.value;
+      
+      if (actualAmount !== expectedDrops) {
+        return { 
+          verified: false, 
+          error: `Amount mismatch: expected ${expectedDrops} drops, got ${actualAmount}` 
+        };
+      }
+
+      // Check transaction result
+      if (tx.meta?.TransactionResult !== 'tesSUCCESS') {
+        return { 
+          verified: false, 
+          error: `Transaction failed: ${tx.meta?.TransactionResult}` 
+        };
+      }
+
+      console.log(`Transaction verified successfully on attempt ${attempt}`);
+      return {
+        verified: true,
+        txData: {
+          sender: tx.Account,
+          destination: tx.Destination,
+          amount: actualAmount,
+          status: tx.meta?.TransactionResult,
+          validated: tx.validated
+        }
+      };
+    } catch (error) {
+      console.error(`Error on verification attempt ${attempt}:`, error);
+      if (attempt < MAX_RETRIES) {
+        await sleep(RETRY_DELAY_MS);
+        continue;
+      }
+      return { verified: false, error: 'Failed to verify transaction' };
+    }
   }
+
+  return { verified: false, pending: true, error: 'Verification timed out, transaction may still be pending' };
 }
 
 serve(async (req) => {
