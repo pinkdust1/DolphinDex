@@ -11,6 +11,9 @@ const ESCROW_WALLET = "r9Z9NhRT2Y1pxFJ2hpQuzrXCwqmDKcC4dP";
 // XRPL node for transaction verification
 const XRPL_NODE = "https://xrplcluster.com";
 
+// Directus API URL
+const DIRECTUS_URL = "https://admin.asapcase.shop";
+
 // Allowed actions
 const ALLOWED_ACTIONS = ['create_payment', 'check_payment', 'verify_transaction'];
 
@@ -23,6 +26,262 @@ const TX_HASH_PATTERN = /^[A-F0-9]{64}$/i;
 // Convert XRP to drops (1 XRP = 1,000,000 drops)
 function xrpToDrops(xrp: number): string {
   return String(Math.floor(xrp * 1000000));
+}
+
+// Get Directus headers
+function getDirectusHeaders(): Record<string, string> {
+  const token = Deno.env.get('DIRECTUS_API_TOKEN');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+}
+
+// Get lobby collection name based on game type
+function getLobbyCollection(gameType: string): string {
+  return gameType === 'chess' ? 'chess_loby_data' : 'loby_data';
+}
+
+// Create payment record in Directus
+async function createPaymentRecord(
+  lobbyId: string,
+  gameType: string,
+  playerWallet: string,
+  playerRole: string,
+  amount: number,
+  xamanUuid: string
+): Promise<{ success: boolean; recordId?: number; error?: string }> {
+  try {
+    const response = await fetch(`${DIRECTUS_URL}/items/game_payments`, {
+      method: 'POST',
+      headers: getDirectusHeaders(),
+      body: JSON.stringify({
+        lobby_id: lobbyId,
+        game_type: gameType,
+        player_wallet: playerWallet,
+        player_role: playerRole,
+        amount: amount,
+        xaman_uuid: xamanUuid,
+        status: 'pending'
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Failed to create payment record:', response.status, errorText);
+      return { success: false, error: 'Failed to create payment record' };
+    }
+
+    const data = await response.json();
+    console.log('Created payment record:', data.data?.id);
+    return { success: true, recordId: data.data?.id };
+  } catch (error) {
+    console.error('Error creating payment record:', error);
+    return { success: false, error: 'Database error' };
+  }
+}
+
+// Update payment record status
+async function updatePaymentRecord(
+  xamanUuid: string,
+  status: string,
+  txHash?: string,
+  errorMessage?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // First find the record by xaman_uuid
+    const findResponse = await fetch(
+      `${DIRECTUS_URL}/items/game_payments?filter[xaman_uuid][_eq]=${encodeURIComponent(xamanUuid)}`,
+      { headers: getDirectusHeaders() }
+    );
+
+    if (!findResponse.ok) {
+      return { success: false, error: 'Failed to find payment record' };
+    }
+
+    const findData = await findResponse.json();
+    if (!findData.data || findData.data.length === 0) {
+      console.log('Payment record not found for UUID:', xamanUuid);
+      return { success: false, error: 'Payment record not found' };
+    }
+
+    const recordId = findData.data[0].id;
+
+    // Update the record
+    const updateData: Record<string, string | undefined> = { status };
+    if (txHash) updateData.tx_hash = txHash;
+    if (errorMessage) updateData.error_message = errorMessage;
+
+    const updateResponse = await fetch(`${DIRECTUS_URL}/items/game_payments/${recordId}`, {
+      method: 'PATCH',
+      headers: getDirectusHeaders(),
+      body: JSON.stringify(updateData)
+    });
+
+    if (!updateResponse.ok) {
+      const errorText = await updateResponse.text();
+      console.error('Failed to update payment record:', updateResponse.status, errorText);
+      return { success: false, error: 'Failed to update payment record' };
+    }
+
+    console.log('Updated payment record:', recordId, 'status:', status);
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating payment record:', error);
+    return { success: false, error: 'Database error' };
+  }
+}
+
+// Update or create lobby payment status
+async function updateLobbyPaymentStatus(
+  lobbyId: string,
+  gameType: string,
+  playerRole: string,
+  txHash: string,
+  amount: number
+): Promise<{ success: boolean; bothPaid?: boolean; error?: string }> {
+  try {
+    // Check if lobby_payment_status exists for this lobby
+    const findResponse = await fetch(
+      `${DIRECTUS_URL}/items/lobby_payment_status?filter[lobby_id][_eq]=${encodeURIComponent(lobbyId)}&filter[game_type][_eq]=${encodeURIComponent(gameType)}`,
+      { headers: getDirectusHeaders() }
+    );
+
+    if (!findResponse.ok) {
+      return { success: false, error: 'Failed to check lobby payment status' };
+    }
+
+    const findData = await findResponse.json();
+    const existingRecord = findData.data?.[0];
+
+    if (existingRecord) {
+      // Update existing record
+      const updateData: Record<string, string | number | boolean> = {};
+      
+      if (playerRole === 'creator') {
+        updateData.player1_paid = true;
+        updateData.player1_tx_hash = txHash;
+      } else {
+        updateData.player2_paid = true;
+        updateData.player2_tx_hash = txHash;
+      }
+      
+      // Calculate new total pot
+      const currentPot = parseFloat(existingRecord.total_pot) || 0;
+      updateData.total_pot = currentPot + amount;
+
+      // Check if both players have paid
+      const player1Paid = playerRole === 'creator' ? true : existingRecord.player1_paid === true || existingRecord.player1_paid === "true";
+      const player2Paid = playerRole === 'joiner' ? true : existingRecord.player2_paid === true || existingRecord.player2_paid === "true";
+      const bothPaid = player1Paid && player2Paid;
+
+      if (bothPaid) {
+        updateData.game_started = true;
+      }
+
+      const updateResponse = await fetch(`${DIRECTUS_URL}/items/lobby_payment_status/${existingRecord.id}`, {
+        method: 'PATCH',
+        headers: getDirectusHeaders(),
+        body: JSON.stringify(updateData)
+      });
+
+      if (!updateResponse.ok) {
+        return { success: false, error: 'Failed to update lobby payment status' };
+      }
+
+      console.log('Updated lobby payment status:', existingRecord.id, 'bothPaid:', bothPaid);
+      return { success: true, bothPaid };
+    } else {
+      // Create new record
+      const createData: Record<string, string | number | boolean> = {
+        lobby_id: lobbyId,
+        game_type: gameType,
+        player1_paid: playerRole === 'creator',
+        player2_paid: playerRole === 'joiner',
+        total_pot: amount,
+        game_started: false
+      };
+
+      if (playerRole === 'creator') {
+        createData.player1_tx_hash = txHash;
+      } else {
+        createData.player2_tx_hash = txHash;
+      }
+
+      const createResponse = await fetch(`${DIRECTUS_URL}/items/lobby_payment_status`, {
+        method: 'POST',
+        headers: getDirectusHeaders(),
+        body: JSON.stringify(createData)
+      });
+
+      if (!createResponse.ok) {
+        const errorText = await createResponse.text();
+        console.error('Failed to create lobby payment status:', createResponse.status, errorText);
+        return { success: false, error: 'Failed to create lobby payment status' };
+      }
+
+      console.log('Created lobby payment status for lobby:', lobbyId);
+      return { success: true, bothPaid: false };
+    }
+  } catch (error) {
+    console.error('Error updating lobby payment status:', error);
+    return { success: false, error: 'Database error' };
+  }
+}
+
+// Update lobby collection with payment status
+async function updateLobbyCollection(
+  lobbyId: string,
+  gameType: string,
+  playerRole: string,
+  paymentStatus: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const collection = getLobbyCollection(gameType);
+    
+    // Find lobby by id_lobby
+    const findResponse = await fetch(
+      `${DIRECTUS_URL}/items/${collection}?filter[id_lobby][_eq]=${encodeURIComponent(lobbyId)}`,
+      { headers: getDirectusHeaders() }
+    );
+
+    if (!findResponse.ok) {
+      return { success: false, error: 'Failed to find lobby' };
+    }
+
+    const findData = await findResponse.json();
+    if (!findData.data || findData.data.length === 0) {
+      console.log('Lobby not found:', lobbyId);
+      return { success: false, error: 'Lobby not found' };
+    }
+
+    const recordId = findData.data[0].id;
+    const updateData: Record<string, string | boolean> = {
+      payment_required: true
+    };
+
+    if (playerRole === 'creator') {
+      updateData.player1_payment_status = paymentStatus;
+    } else {
+      updateData.player2_payment_status = paymentStatus;
+    }
+
+    const updateResponse = await fetch(`${DIRECTUS_URL}/items/${collection}/${recordId}`, {
+      method: 'PATCH',
+      headers: getDirectusHeaders(),
+      body: JSON.stringify(updateData)
+    });
+
+    if (!updateResponse.ok) {
+      return { success: false, error: 'Failed to update lobby' };
+    }
+
+    console.log('Updated lobby collection:', collection, recordId, 'player:', playerRole, 'status:', paymentStatus);
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating lobby collection:', error);
+    return { success: false, error: 'Database error' };
+  }
 }
 
 // Verify transaction on XRPL
@@ -181,7 +440,14 @@ serve(async (req) => {
         );
       }
 
-      console.log(`Creating payment request: ${amount} XRP from ${sender} for lobby ${lobby_id}`);
+      if (!player_role || !['creator', 'joiner'].includes(player_role)) {
+        return new Response(
+          JSON.stringify({ error: 'Valid player role is required (creator/joiner)' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`Creating payment request: ${amount} XRP from ${sender} for lobby ${lobby_id} (${player_role})`);
 
       // Create Payment transaction payload
       const payload = {
@@ -194,8 +460,8 @@ serve(async (req) => {
           instruction: `Payment of ${amount} XRP for game bet`,
           blob: JSON.stringify({
             lobby_id,
-            game_type: game_type || 'unknown',
-            player_role: player_role || 'unknown',
+            game_type: game_type || 'checkers',
+            player_role,
             amount,
             timestamp: Date.now()
           })
@@ -224,6 +490,23 @@ serve(async (req) => {
       const data = await response.json();
       console.log('Payment payload created:', data.uuid);
 
+      // Save payment record to Directus
+      const paymentRecord = await createPaymentRecord(
+        lobby_id,
+        game_type || 'checkers',
+        sender,
+        player_role,
+        amount,
+        data.uuid
+      );
+
+      if (!paymentRecord.success) {
+        console.error('Failed to save payment record, but continuing...');
+      }
+
+      // Update lobby with pending payment status
+      await updateLobbyCollection(lobby_id, game_type || 'checkers', player_role, 'pending');
+
       return new Response(
         JSON.stringify({
           success: true,
@@ -231,7 +514,8 @@ serve(async (req) => {
           qrUrl: data.refs.qr_png,
           deepLink: data.next.always,
           amount,
-          destination: ESCROW_WALLET
+          destination: ESCROW_WALLET,
+          paymentRecordId: paymentRecord.recordId
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -239,7 +523,7 @@ serve(async (req) => {
 
     // CHECK PAYMENT - Check if payment was signed
     if (action === 'check_payment') {
-      const { uuid, expected_amount, expected_sender } = body;
+      const { uuid, expected_amount, expected_sender, lobby_id, game_type, player_role } = body;
 
       if (!uuid || typeof uuid !== 'string' || !UUID_PATTERN.test(uuid)) {
         return new Response(
@@ -282,6 +566,42 @@ serve(async (req) => {
           expected_sender
         );
 
+        if (verification.verified && lobby_id && game_type && player_role) {
+          // Update payment record to verified
+          await updatePaymentRecord(uuid, 'verified', txHash);
+          
+          // Update lobby payment status
+          const lobbyStatus = await updateLobbyPaymentStatus(
+            lobby_id,
+            game_type,
+            player_role,
+            txHash,
+            expected_amount
+          );
+
+          // Update lobby collection
+          await updateLobbyCollection(lobby_id, game_type, player_role, 'verified');
+
+          return new Response(
+            JSON.stringify({
+              signed: true,
+              expired: data.meta.expired,
+              resolved: data.meta.resolved,
+              txHash,
+              account: data.response.account,
+              verified: true,
+              txData: verification.txData,
+              bothPlayersPaid: lobbyStatus.bothPaid,
+              gameCanStart: lobbyStatus.bothPaid
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else if (!verification.verified && lobby_id && player_role) {
+          // Update payment record to failed
+          await updatePaymentRecord(uuid, 'failed', txHash, verification.error);
+          await updateLobbyCollection(lobby_id, game_type || 'checkers', player_role, 'failed');
+        }
+
         return new Response(
           JSON.stringify({
             signed: true,
@@ -295,6 +615,19 @@ serve(async (req) => {
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+      }
+
+      // Check if rejected or expired
+      if (data.meta.resolved && !data.meta.signed) {
+        await updatePaymentRecord(uuid, 'failed', undefined, 'Payment rejected by user');
+        if (lobby_id && player_role) {
+          await updateLobbyCollection(lobby_id, game_type || 'checkers', player_role, 'rejected');
+        }
+      } else if (data.meta.expired) {
+        await updatePaymentRecord(uuid, 'failed', undefined, 'Payment expired');
+        if (lobby_id && player_role) {
+          await updateLobbyCollection(lobby_id, game_type || 'checkers', player_role, 'expired');
+        }
       }
 
       return new Response(

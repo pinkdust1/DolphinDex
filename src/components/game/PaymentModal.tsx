@@ -99,6 +99,9 @@ export const PaymentModal = ({
           uuid: paymentData.uuid,
           expected_amount: amount,
           expected_sender: walletAddress,
+          lobby_id: String(lobbyId),
+          game_type: gameType,
+          player_role: playerRole,
         },
       });
 
@@ -138,6 +141,11 @@ export const PaymentModal = ({
         }
         setTxHash(data.txHash);
         setState("confirmed");
+        
+        // Log if both players have paid
+        if (data.gameCanStart) {
+          console.log("Both players have paid! Game can start.");
+        }
         return;
       }
 
@@ -156,7 +164,7 @@ export const PaymentModal = ({
     } catch (err) {
       console.error("Payment check error:", err);
     }
-  }, [paymentData?.uuid, amount, walletAddress]);
+  }, [paymentData?.uuid, amount, walletAddress, lobbyId, gameType, playerRole]);
 
   // Initialize payment on open
   useEffect(() => {
