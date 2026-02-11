@@ -189,6 +189,7 @@ export const ProfileTab = () => {
             variant="secondary"
             size="icon"
             className="bg-secondary hover:bg-secondary/80 text-foreground h-10 w-10 rounded-xl"
+            onClick={isConnected ? handleDisconnect : handleConnect}
           >
             <Wallet className="w-4 h-4" />
           </Button>
