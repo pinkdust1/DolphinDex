@@ -6,6 +6,10 @@ interface Translations {
   // Profile Tab
   balance: string;
   topUp: string;
+  referralLink: string;
+  referralCopy: string;
+  referralCopied: string;
+  referralDescription: string;
   // Market Tab
   searchGift: string;
   type: string;
@@ -23,6 +27,10 @@ const translations: Record<Language, Translations> = {
   en: {
     balance: 'Balance',
     topUp: 'Top Up',
+    referralLink: 'Referral Link',
+    referralCopy: 'Copy',
+    referralCopied: 'Copied!',
+    referralDescription: 'Invite friends and earn rewards',
     searchGift: 'Search Gift',
     type: 'Type',
     skin: 'Skin',
@@ -35,6 +43,10 @@ const translations: Record<Language, Translations> = {
   ru: {
     balance: 'Баланс',
     topUp: 'Пополнить',
+    referralLink: 'Реферальная ссылка',
+    referralCopy: 'Копировать',
+    referralCopied: 'Скопировано!',
+    referralDescription: 'Приглашайте друзей и получайте награды',
     searchGift: 'Поиск Гифта',
     type: 'Тип',
     skin: 'Скин',

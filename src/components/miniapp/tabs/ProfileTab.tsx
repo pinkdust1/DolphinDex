@@ -1,6 +1,6 @@
-import { Wallet, RefreshCw } from 'lucide-react';
+import { Wallet, RefreshCw, Copy, Check, Users } from 'lucide-react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
@@ -194,6 +194,63 @@ export const ProfileTab = () => {
             <Wallet className="w-4 h-4" />
           </Button>
         </div>
+      </div>
+      {/* Referral Block */}
+      <ReferralBlock />
+    </div>
+  );
+};
+
+const BOT_USERNAME = 'YOUR_BOT_USERNAME';
+const MINIAPP_NAME = 'app';
+
+const ReferralBlock = () => {
+  const { t } = useLanguage();
+  const [copied, setCopied] = useState(false);
+
+  const getTelegramId = () => {
+    const tg = (window as any).Telegram?.WebApp;
+    return tg?.initDataUnsafe?.user?.id || null;
+  };
+
+  const telegramId = getTelegramId();
+  const referralLink = telegramId
+    ? `https://t.me/${BOT_USERNAME}/${MINIAPP_NAME}?startapp=ref_${telegramId}`
+    : '';
+
+  const handleCopy = useCallback(() => {
+    if (!referralLink) return;
+    navigator.clipboard.writeText(referralLink);
+    setCopied(true);
+    toast({ title: t.referralCopied });
+    setTimeout(() => setCopied(false), 2000);
+  }, [referralLink, t.referralCopied]);
+
+  if (!telegramId) return null;
+
+  return (
+    <div className="bg-card rounded-2xl flex flex-col gap-3 px-5 py-4 border border-border">
+      <div className="flex items-center gap-2">
+        <Users className="w-4 h-4 text-muted-foreground" />
+        <div className="text-[13px] leading-[20px] font-bold text-muted-foreground tracking-[-0.26px]">
+          {t.referralLink}
+        </div>
+      </div>
+      <div className="text-[12px] text-muted-foreground">
+        {t.referralDescription}
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-[12px] text-foreground truncate font-mono">
+          {referralLink}
+        </div>
+        <Button
+          variant="secondary"
+          size="icon"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 w-10 rounded-xl flex-none"
+          onClick={handleCopy}
+        >
+          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+        </Button>
       </div>
     </div>
   );
