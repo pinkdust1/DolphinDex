@@ -61,7 +61,19 @@ export const ProfileTab = () => {
   };
 
   const getDisplayName = () => {
-    // Prefer Directus data, fallback to Telegram data
+    // Try Telegram data first (most reliable in TMA context)
+    const tg = (window as any).Telegram?.WebApp;
+    const tgUser = tg?.initDataUnsafe?.user;
+    
+    if (tgUser?.username) {
+      return `@${tgUser.username}`;
+    }
+    if (tgUser?.first_name) {
+      return tgUser.last_name 
+        ? `${tgUser.first_name} ${tgUser.last_name}`
+        : tgUser.first_name;
+    }
+    // Fallback to synced data
     if (directusUser?.name) {
       return directusUser.name;
     }
