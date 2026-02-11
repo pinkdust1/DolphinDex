@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
+import dolphinLogoWhite from '@/assets/dolphin-logo-white.png';
+import dolphinLogo from '@/assets/dolphin-logo.png';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -29,16 +31,13 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       <div className="flex flex-col items-center gap-8">
         {/* Logo */}
         <img
-          src={resolvedTheme === 'dark' 
-            ? '/src/assets/dolphin-logo-white.png' 
-            : '/src/assets/dolphin-logo.png'
-          }
+          src={resolvedTheme === 'dark' ? dolphinLogoWhite : dolphinLogo}
           alt="DolphinScan"
           className="w-24 h-24 object-contain"
         />
         
         {/* App Name */}
-        <h1 className="text-2xl font-bold text-foreground">DolphinScan</h1>
+        <h1 className="text-2xl font-bold text-foreground">Dolphin</h1>
         
         {/* Progress Bar */}
         <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
