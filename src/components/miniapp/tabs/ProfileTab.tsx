@@ -1,4 +1,4 @@
-import { Wallet, RefreshCw, Copy, Check, Users } from 'lucide-react';
+import { Wallet, RefreshCw, Copy, Check, Users, Package } from 'lucide-react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -197,6 +197,63 @@ export const ProfileTab = () => {
       </div>
       {/* Referral Block */}
       <ReferralBlock />
+      {/* Inventory Block */}
+      <InventoryBlock />
+    </div>
+  );
+};
+
+const InventoryBlock = () => {
+  const { t } = useLanguage();
+  const { directusUser } = useTelegramUser();
+
+  // Parse inventory from Directus (future: array of NFT gift objects)
+  const inventoryItems: Array<{ id: string; name: string; image_url: string }> = (() => {
+    try {
+      if (directusUser?.inventory) {
+        const parsed = JSON.parse(directusUser.inventory);
+        return Array.isArray(parsed) ? parsed : [];
+      }
+    } catch {}
+    return [];
+  })();
+
+  return (
+    <div className="bg-card rounded-2xl flex flex-col gap-3 px-5 py-4 border border-border">
+      <div className="flex items-center gap-2">
+        <Package className="w-4 h-4 text-muted-foreground" />
+        <div className="text-[13px] leading-[20px] font-bold text-muted-foreground tracking-[-0.26px]">
+          {t.inventory}
+        </div>
+      </div>
+      {inventoryItems.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-6 gap-2">
+          <Package className="w-8 h-8 text-muted-foreground/40" />
+          <div className="text-[12px] text-muted-foreground/60">
+            {t.inventoryEmpty}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-2">
+          {inventoryItems.map((item) => (
+            <div
+              key={item.id}
+              className="bg-secondary rounded-xl p-2 flex flex-col items-center gap-1.5"
+            >
+              <div className="w-full aspect-square rounded-lg bg-muted overflow-hidden">
+                <img
+                  src={item.image_url}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="text-[11px] font-medium text-foreground truncate w-full text-center">
+                {item.name}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

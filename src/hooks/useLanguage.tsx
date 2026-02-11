@@ -10,6 +10,8 @@ interface Translations {
   referralCopy: string;
   referralCopied: string;
   referralDescription: string;
+  inventory: string;
+  inventoryEmpty: string;
   // Market Tab
   searchGift: string;
   type: string;
@@ -31,6 +33,8 @@ const translations: Record<Language, Translations> = {
     referralCopy: 'Copy',
     referralCopied: 'Copied!',
     referralDescription: 'Invite friends and earn rewards',
+    inventory: 'Inventory',
+    inventoryEmpty: 'No gifts yet',
     searchGift: 'Search Gift',
     type: 'Type',
     skin: 'Skin',
@@ -47,6 +51,8 @@ const translations: Record<Language, Translations> = {
     referralCopy: 'Копировать',
     referralCopied: 'Скопировано!',
     referralDescription: 'Приглашайте друзей и получайте награды',
+    inventory: 'Инвентарь',
+    inventoryEmpty: 'Подарков пока нет',
     searchGift: 'Поиск Гифта',
     type: 'Тип',
     skin: 'Скин',
