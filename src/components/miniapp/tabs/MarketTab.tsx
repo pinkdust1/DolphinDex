@@ -1,19 +1,80 @@
-import { Search, Clock, ChevronDown, ArrowUpDown } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { Search, Clock, ChevronDown, ArrowUpDown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { GiftCard } from '../GiftCard';
 import { useLanguage } from '@/hooks/useLanguage';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 // Mock data for gifts
 const mockGifts = [
-  { id: '4977', name: 'Whip Cupcake', price: '3.71', imageUrl: 'https://nft.fragment.com/gift/whipcupcake-4977.large.jpg' },
-  { id: '62519', name: 'B-Day Candle', price: '3.71', imageUrl: 'https://nft.fragment.com/gift/bdaycandle-62519.large.jpg' },
-  { id: '108323', name: 'Pet Snake', price: '3.72', imageUrl: 'https://nft.fragment.com/gift/petsnake-108323.large.jpg' },
-  { id: '227762', name: 'Ice Cream', price: '3.74', imageUrl: 'https://nft.fragment.com/gift/icecream-227762.large.jpg' },
+  { id: '4977', name: 'Whip Cupcake', price: 3.71, type: 'food', skin: 'classic', background: 'light', imageUrl: 'https://nft.fragment.com/gift/whipcupcake-4977.large.jpg' },
+  { id: '62519', name: 'B-Day Candle', price: 3.71, type: 'accessory', skin: 'golden', background: 'dark', imageUrl: 'https://nft.fragment.com/gift/bdaycandle-62519.large.jpg' },
+  { id: '108323', name: 'Pet Snake', price: 3.72, type: 'pet', skin: 'classic', background: 'dark', imageUrl: 'https://nft.fragment.com/gift/petsnake-108323.large.jpg' },
+  { id: '227762', name: 'Ice Cream', price: 3.74, type: 'food', skin: 'rainbow', background: 'light', imageUrl: 'https://nft.fragment.com/gift/icecream-227762.large.jpg' },
 ];
+
+type SortOrder = 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc';
+
+const TYPES = ['food', 'pet', 'accessory'] as const;
+const SKINS = ['classic', 'golden', 'rainbow'] as const;
+const BACKGROUNDS = ['light', 'dark'] as const;
 
 export const MarketTab = () => {
   const { t } = useLanguage();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('price_asc');
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedSkin, setSelectedSkin] = useState<string | null>(null);
+  const [selectedBg, setSelectedBg] = useState<string | null>(null);
+
+  const filteredGifts = useMemo(() => {
+    let result = [...mockGifts];
+
+    // Search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (g) => g.name.toLowerCase().includes(q) || g.id.includes(q)
+      );
+    }
+
+    // Filters
+    if (selectedType) result = result.filter((g) => g.type === selectedType);
+    if (selectedSkin) result = result.filter((g) => g.skin === selectedSkin);
+    if (selectedBg) result = result.filter((g) => g.background === selectedBg);
+
+    // Sort
+    switch (sortOrder) {
+      case 'price_asc':
+        result.sort((a, b) => a.price - b.price);
+        break;
+      case 'price_desc':
+        result.sort((a, b) => b.price - a.price);
+        break;
+      case 'name_asc':
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'name_desc':
+        result.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+    }
+
+    return result;
+  }, [searchQuery, selectedType, selectedSkin, selectedBg, sortOrder]);
+
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  }, []);
+
+  const sortLabel = sortOrder.includes('price')
+    ? `${sortOrder === 'price_asc' ? '↑' : '↓'} Price`
+    : `${sortOrder === 'name_asc' ? 'A→Z' : 'Z→A'}`;
 
   return (
     <div className="flex flex-col gap-4">
@@ -26,6 +87,8 @@ export const MarketTab = () => {
               type="text" 
               className="w-full min-w-0 text-[14px] leading-[20px] tracking-[-0.28px] font-bold text-foreground placeholder:text-muted-foreground border-0 bg-transparent p-0 h-auto focus-visible:ring-0"
               placeholder={t.searchGift}
+              value={searchQuery}
+              onChange={handleSearch}
             />
           </label>
         </div>
@@ -62,55 +125,148 @@ export const MarketTab = () => {
       {/* Filters Row */}
       <div className="flex items-center gap-2 overflow-x-auto h-10 -mx-4 px-4">
         {/* Sort Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="bg-secondary hover:bg-secondary/80 text-foreground w-10 h-10 rounded-xl flex-none"
-        >
-          <ArrowUpDown className="w-5 h-5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-secondary hover:bg-secondary/80 text-foreground w-10 h-10 rounded-xl flex-none"
+            >
+              <ArrowUpDown className="w-5 h-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="bg-card border-border">
+            {([
+              ['price_asc', '↑ Price Low'],
+              ['price_desc', '↓ Price High'],
+              ['name_asc', 'A → Z'],
+              ['name_desc', 'Z → A'],
+            ] as const).map(([value, label]) => (
+              <DropdownMenuItem
+                key={value}
+                onClick={() => setSortOrder(value as SortOrder)}
+                className="flex items-center justify-between gap-2"
+              >
+                {label}
+                {sortOrder === value && <Check className="w-4 h-4" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Type Filter */}
-        <Button
-          variant="ghost"
-          className="bg-secondary hover:bg-secondary/80 text-foreground pl-3 pr-2 h-10 rounded-xl gap-0.5 whitespace-nowrap"
-        >
-          <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">{t.type}</span>
-          <ChevronDown className="w-5 h-5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className={`pl-3 pr-2 h-10 rounded-xl gap-0.5 whitespace-nowrap ${selectedType ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-secondary hover:bg-secondary/80 text-foreground'}`}
+            >
+              <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">
+                {selectedType ? selectedType : t.type}
+              </span>
+              <ChevronDown className="w-5 h-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="bg-card border-border">
+            <DropdownMenuItem onClick={() => setSelectedType(null)} className="flex items-center justify-between gap-2">
+              All
+              {!selectedType && <Check className="w-4 h-4" />}
+            </DropdownMenuItem>
+            {TYPES.map((type) => (
+              <DropdownMenuItem
+                key={type}
+                onClick={() => setSelectedType(type)}
+                className="flex items-center justify-between gap-2 capitalize"
+              >
+                {type}
+                {selectedType === type && <Check className="w-4 h-4" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Skin Filter */}
-        <Button
-          variant="ghost"
-          className="bg-secondary hover:bg-secondary/80 text-foreground pl-3 pr-2 h-10 rounded-xl gap-0.5 whitespace-nowrap"
-        >
-          <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">{t.skin}</span>
-          <ChevronDown className="w-5 h-5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className={`pl-3 pr-2 h-10 rounded-xl gap-0.5 whitespace-nowrap ${selectedSkin ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-secondary hover:bg-secondary/80 text-foreground'}`}
+            >
+              <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">
+                {selectedSkin ? selectedSkin : t.skin}
+              </span>
+              <ChevronDown className="w-5 h-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="bg-card border-border">
+            <DropdownMenuItem onClick={() => setSelectedSkin(null)} className="flex items-center justify-between gap-2">
+              All
+              {!selectedSkin && <Check className="w-4 h-4" />}
+            </DropdownMenuItem>
+            {SKINS.map((skin) => (
+              <DropdownMenuItem
+                key={skin}
+                onClick={() => setSelectedSkin(skin)}
+                className="flex items-center justify-between gap-2 capitalize"
+              >
+                {skin}
+                {selectedSkin === skin && <Check className="w-4 h-4" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Background Filter */}
-        <Button
-          variant="ghost"
-          className="bg-secondary hover:bg-secondary/80 text-foreground pl-3 pr-2 h-10 rounded-xl gap-0.5 whitespace-nowrap"
-        >
-          <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">{t.background}</span>
-          <ChevronDown className="w-5 h-5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className={`pl-3 pr-2 h-10 rounded-xl gap-0.5 whitespace-nowrap ${selectedBg ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-secondary hover:bg-secondary/80 text-foreground'}`}
+            >
+              <span className="text-[14px] leading-[20px] font-bold tracking-[-0.28px]">
+                {selectedBg ? selectedBg : t.background}
+              </span>
+              <ChevronDown className="w-5 h-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="bg-card border-border">
+            <DropdownMenuItem onClick={() => setSelectedBg(null)} className="flex items-center justify-between gap-2">
+              All
+              {!selectedBg && <Check className="w-4 h-4" />}
+            </DropdownMenuItem>
+            {BACKGROUNDS.map((bg) => (
+              <DropdownMenuItem
+                key={bg}
+                onClick={() => setSelectedBg(bg)}
+                className="flex items-center justify-between gap-2 capitalize"
+              >
+                {bg}
+                {selectedBg === bg && <Check className="w-4 h-4" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Gifts Grid */}
       <div className="grid grid-cols-3 gap-4 w-full">
-        {mockGifts.map((gift) => (
-          <GiftCard
-            key={gift.id}
-            id={gift.id}
-            name={gift.name}
-            price={gift.price}
-            imageUrl={gift.imageUrl}
-            onAddClick={() => console.log('Add clicked:', gift.id)}
-            onBuyClick={() => console.log('Buy clicked:', gift.id)}
-          />
-        ))}
+        {filteredGifts.length === 0 ? (
+          <div className="col-span-3 text-center py-8 text-muted-foreground text-[13px]">
+            No gifts found
+          </div>
+        ) : (
+          filteredGifts.map((gift) => (
+            <GiftCard
+              key={gift.id}
+              id={gift.id}
+              name={gift.name}
+              price={String(gift.price)}
+              imageUrl={gift.imageUrl}
+              onAddClick={() => console.log('Add clicked:', gift.id)}
+              onBuyClick={() => console.log('Buy clicked:', gift.id)}
+            />
+          ))
+        )}
       </div>
     </div>
   );
