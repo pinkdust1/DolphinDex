@@ -5,8 +5,10 @@ interface TonConnectProviderProps {
   children: ReactNode;
 }
 
-// Use the published URL for the manifest to avoid CORS issues
-const manifestUrl = 'https://pure-html-react-glow.lovable.app/tonconnect-manifest.json';
+// Use current origin for manifest URL to ensure accessibility
+const manifestUrl = typeof window !== 'undefined' 
+  ? `${window.location.origin}/tonconnect-manifest.json`
+  : 'https://pure-html-react-glow.lovable.app/tonconnect-manifest.json';
 
 export const TonConnectProvider = ({ children }: TonConnectProviderProps) => {
   return (
