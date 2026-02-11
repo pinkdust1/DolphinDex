@@ -23,6 +23,19 @@ interface Translations {
   profile: string;
   // Game Tab
   comingSoon: string;
+  // Shell Game
+  shellGame: string;
+  shellGameDesc: string;
+  shellStart: string;
+  shellWatch: string;
+  shellShuffling: string;
+  shellPick: string;
+  shellWin: string;
+  shellLose: string;
+  shellPlay: string;
+  shellPlayAgain: string;
+  shellPlaying: string;
+  shellWins: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -43,6 +56,18 @@ const translations: Record<Language, Translations> = {
     market: 'Market',
     profile: 'Profile',
     comingSoon: 'Coming Soon',
+    shellGame: 'Shell Game',
+    shellGameDesc: 'Find the ball under the cup',
+    shellStart: 'Press Play to start',
+    shellWatch: 'Watch the ball!',
+    shellShuffling: 'Shuffling...',
+    shellPick: 'Pick a cup!',
+    shellWin: '🎉 You found it!',
+    shellLose: '😔 Wrong cup!',
+    shellPlay: 'Play',
+    shellPlayAgain: 'Play Again',
+    shellPlaying: 'Playing...',
+    shellWins: 'Score',
   },
   ru: {
     balance: 'Баланс',
@@ -61,6 +86,18 @@ const translations: Record<Language, Translations> = {
     market: 'Маркет',
     profile: 'Профиль',
     comingSoon: 'Скоро',
+    shellGame: 'Напёрстки',
+    shellGameDesc: 'Найди шарик под стаканом',
+    shellStart: 'Нажми Играть',
+    shellWatch: 'Следи за шариком!',
+    shellShuffling: 'Перемешиваю...',
+    shellPick: 'Выбери стакан!',
+    shellWin: '🎉 Угадал!',
+    shellLose: '😔 Не угадал!',
+    shellPlay: 'Играть',
+    shellPlayAgain: 'Ещё раз',
+    shellPlaying: 'Играем...',
+    shellWins: 'Счёт',
   },
 };
 

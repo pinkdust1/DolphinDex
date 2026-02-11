@@ -1,11 +1,9 @@
-import { useLanguage } from '@/hooks/useLanguage';
+import { ShellGame } from '@/components/miniapp/games/ShellGame';
 
 export const GameTab = () => {
-  const { t } = useLanguage();
-
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <p className="text-lg text-muted-foreground">{t.comingSoon}</p>
+    <div className="flex flex-col gap-4">
+      <ShellGame />
     </div>
   );
 };
