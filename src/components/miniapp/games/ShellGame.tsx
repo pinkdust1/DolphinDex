@@ -82,13 +82,7 @@ const Cup = ({
       </svg>
     </div>
 
-    {/* Highlight ring */}
-    {highlight && (
-      <div className={cn(
-        'absolute -inset-2 rounded-2xl border-2 animate-pulse pointer-events-none',
-        highlight === 'win' ? 'border-foreground' : 'border-destructive',
-      )} />
-    )}
+    {/* No highlight ring */}
   </button>
 );
 
