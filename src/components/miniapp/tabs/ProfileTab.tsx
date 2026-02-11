@@ -214,19 +214,15 @@ const ReferralBlock = () => {
   };
 
   const telegramId = getTelegramId();
-  const referralLink = telegramId
-    ? `https://t.me/${BOT_USERNAME}/${MINIAPP_NAME}?startapp=ref_${telegramId}`
-    : '';
+  const displayId = telegramId || '000000';
+  const referralLink = `https://t.me/${BOT_USERNAME}/${MINIAPP_NAME}?startapp=ref_${displayId}`;
 
   const handleCopy = useCallback(() => {
-    if (!referralLink) return;
     navigator.clipboard.writeText(referralLink);
     setCopied(true);
     toast({ title: t.referralCopied });
     setTimeout(() => setCopied(false), 2000);
   }, [referralLink, t.referralCopied]);
-
-  if (!telegramId) return null;
 
   return (
     <div className="bg-card rounded-2xl flex flex-col gap-3 px-5 py-4 border border-border">
