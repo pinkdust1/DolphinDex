@@ -100,6 +100,11 @@ All colors MUST be HSL.
   }
 }
 
+/* Hide scrollbar utility */
+.overflow-x-auto::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes wiggle {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-4px) rotate(-2deg); }
