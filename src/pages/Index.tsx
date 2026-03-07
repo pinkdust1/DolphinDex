@@ -102,6 +102,8 @@ const Index = () => {
               </Alert>
             )}
           </div>
+
+          <LedgerBlocks />
         </div>
       </main>
     </div>
