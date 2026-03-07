@@ -101,7 +101,9 @@ export const LedgerBlocks = () => {
         Live Ledger
       </h2>
 
-      <div className="relative overflow-x-auto pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+      <div className="relative overflow-hidden">
+        <div className="overflow-x-auto pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+
         <div className="flex items-stretch gap-0">
           {blocks.map((block, idx) => (
             <div
@@ -171,6 +173,9 @@ export const LedgerBlocks = () => {
             </div>
           ))}
         </div>
+        </div>
+        {/* Fade-out gradient on the right edge */}
+        <div className="absolute right-0 top-0 bottom-0 w-24 pointer-events-none bg-gradient-to-l from-background to-transparent" />
       </div>
     </div>
   );
