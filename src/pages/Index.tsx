@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { detectSearchType } from "@/utils/xrpl";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LedgerBlocks } from "@/components/LedgerBlocks";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -101,6 +102,8 @@ const Index = () => {
               </Alert>
             )}
           </div>
+
+          <LedgerBlocks />
         </div>
       </main>
     </div>
