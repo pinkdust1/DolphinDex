@@ -101,7 +101,7 @@ export const LedgerBlocks = () => {
         Live Ledger
       </h2>
 
-      <div className="relative overflow-x-auto pb-2 scrollbar-hide">
+      <div className="relative overflow-x-auto pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
         <div className="flex items-stretch gap-0">
           {blocks.map((block, idx) => (
             <div
