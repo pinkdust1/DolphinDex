@@ -173,6 +173,9 @@ export const LedgerBlocks = () => {
             </div>
           ))}
         </div>
+        </div>
+        {/* Fade-out gradient on the right edge */}
+        <div className="absolute right-0 top-0 bottom-0 w-24 pointer-events-none bg-gradient-to-l from-background to-transparent" />
       </div>
     </div>
   );
